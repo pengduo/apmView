@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>html5桌面通知</title>
+</head>
+<body>
+<input type="button" value="开启桌面通知" onclick="showNotice();">
+<script>
+    function showNotice(){
+        Notification.requestPermission(function(status){
+            //status默认值'default'等同于拒绝 'denied' 意味着用户不想要通知 'granted' 意味着用户同意启用通知
+            if("granted" != status)
+                return;
+            var notify = new Notification("消息",{
+                dir:'auto',
+                lang:'zh-CN',
+                tag:'sds',//实例化的notification的id
+                //icon 支持ico、png、jpg、jpeg格式
+                icon:'http://www.xttblog.com/icons/favicon.ico',//通知的缩略图
+                body:'html5桌面通知' //通知的具体内容
+            });
+            notify.onclick=function(){
+                //如果通知消息被点击,通知窗口将被激活
+                window.focus();
+            }
+        });
+    }
+</script>
+</body>
+</html>

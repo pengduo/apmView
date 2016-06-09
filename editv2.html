@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"/>
+    <title>业务拓扑编辑V0.8</title>
+
+    <script type="text/javascript" src="js/jtopo-0.4.8-min-extent.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/json2.js"></script>
+    <script type="text/javascript" src="js/toolbar.js"></script>
+
+    <script id='code'>
+
+        var vm = {
+            name: "Node_Name",
+            x: 0,
+            y: 0,
+            rel: ""
+        };
+
+        var isLinkMode = false;
+        var mgconfigfile = 'mgconfig.json';
+        var isExistMG = ""; // 配置文件中是否存在此业务组
+        var vms = new Array();//输出NODE和LINK配置文件的JSON对象
+        var strJsonMonitors = "";//输出NODE和LINK配置文件
+        var strJsonMonitorDetail = "";//输出某业务组的各监视对象数组字符串
+        var strJsonJTopo = '';//拓扑图形序列化输出JSON对象
+        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+        var strResourceID = "1";
+
+        /*
+
+         //检查原配置文件中是否存在此业务组，如有返回其details数组，否则返回原业务组名称
+         function checkExistMG(mg) {
+         var outVar = "";
+         var inVar = "";
+         inVar = mg;
+         $.getJSON(mgconfigfile, function (data) {
+         for (var i = 0; i < data.monitorgroups.length; i++) {
+         //var r =equals(data.monitorgroups[i].NAME,mg);
+         if (data.monitorgroups[i].NAME == inVar) {
+         alert("find it：" + inVar);
+         alert(JSON.stringify(data.monitorgroups[i].details));
+         outVar = JSON.stringify(data.monitorgroups[i].details);
+         outVar = "OK";
+         //return JSON.stringify(data.monitorgroups[i].details;
+         } else {
+         outVar = inVar;
+         }
+         }
+         });
+         //alert("result:"+outVar);
+         return outVar;
+         }
+
+
+         //获取原配置文件中此业务组的MONITOER的信息
+         function getMGMonitors(mg) {
+         $.getJSON(mgconfigfile, function (data) {
+         for (var i = 0; i < data.monitorgroups.length; i++) {
+         if (data.monitorgroups[i].NAME == mg) {
+         strJsonMonitorDetail = JSON.stringify(data.monitorgroups[i].detail);
+         alert(strJsonMonitorDetail);
+         }
+         }
+         });
+         return strJsonMonitorDetail;
+         }
+
+         */
+
+        $(document).ready(function () {
+
+                    var canvas = document.getElementById('canvas');
+                    var stage = new JTopo.Stage(canvas);
+                    var scene = new JTopo.Scene(stage);
+
+//                    stage.eagleEye.visible = true;
+                    //显示工具栏
+                    showJTopoToobar(stage);
+                    scene.background = './img/bgGrid.jpg';
+
+
+                    /*
+                     function createMGView(vData) {
+                     var mgData = vData;
+
+                     //创建节点
+
+                     for (var ii = 0; ii < mgData.length; ii++) {
+                     var strNodTypeAndName = mgData[ii].name.split("::");
+                     var node = new JTopo.Node(strNodTypeAndName[0] + "::" + strNodTypeAndName[1]);
+                     node.setLocation(mgData[ii].x, mgData[ii].y);
+                     node.setImage('./img/apm/icon_monitors_' + strNodTypeAndName[0] + '.png', false);
+                     node.fontColor = "0,22,0";
+                     node.shadow = true;  //增加阴影效果
+                     scene.add(node);
+                     }
+
+
+                     //创建连线
+                     for (var jj = 0; jj < mgData.length; jj++) {
+                     var nodeTextFrom = mgData[jj].name;
+                     var sourcenode = findNodeByText(nodeTextFrom);
+                     for (var jjj = 0; jjj < mgData[jj].rel.length; jjj++) {
+                     var destinationnode = findNodeByText(mgData[jj].rel[jjj]);
+                     alert(sourcenode.txt + "->" + destinationnode.text);
+                     var link = linkNode(sourcenode, destinationnode, false);
+                     scene.add(link);
+                     }
+                     }
+
+                     //return null;
+
+                     }
+
+                     */
+
+                    /*
+
+                     //根据配置文件中特定业务组的JSON文件内容，初始化产生各监视器，按原来的位置和LINK，供调整
+                     function createViewFromConfigfile(mg) {
+                     //开始初始化创建
+
+                     $.getJSON(dataroot, function (data) {
+                     //随机位置创建节点
+                     for (var i = 0; i < data.response.result[0].Monitors.length; i++) {
+                     var node = new JTopo.Node(data.response.result[0].Monitors[i].NAME);
+                     node.setLocation(Math.random() * 600, Math.random() * 400);
+                     node.setImage('./img/apm/icon_monitors_' + data.response.result[0].Monitors[i].TYPE + '.png', false);
+                     node.fontColor = "0,22,0";
+                     node.shadow = true;  //增加阴影效果
+                     scene.add(node);
+                     var v = {"name": node.text, "x": node.x, "y": node.y, "rel": []};
+                     vms.push(v);
+                     }
+                     });
+                     }
+
+                     */
+
+                    $.getJSON(mgconfigfile, function (data) {
+                        var foundMG = false;
+//遍历配件文件中的监视器组
+                        for (var i = 0; i < data.monitorgroups.length; i++) {
+//console.log(data);
+                            //如果发现有此监视器组，即遍历监视器组的各监视器的位置
+                            if (data.monitorgroups[i].name == strMoniterGroupName) {
+
+                                foundMG = true;
+// createMGView(vms);
+
+
+                                //创建节点
+                                for (var ii = 0; ii < data.monitorgroups[i].details.length; ii++) {
+//var jsonobj = data.monitorgroups[i].details[ii];
+                                    //alert(data.monitorgroups[i].details[ii].name);
+                                    //var strNodTypeAndName = data.monitorgroups[i].details[ii].name.split("::");
+                                    //var node = new JTopo.Node(strNodTypeAndName[0] + "::" + strNodTypeAndName[1]);
+                                    var node = new JTopo.Node(data.monitorgroups[i].details[ii].name);
+                                    node.setLocation(data.monitorgroups[i].details[ii].x, data.monitorgroups[i].details[ii].y);
+                                    node.setImage('./img/apm/icon_monitors_' + data.monitorgroups[i].details[ii].type + '.png', false);
+                                    node.fontColor = "0,22,0";
+                                    node.shadow = true;  //增加阴影效果
+                                    scene.add(node);
+
+//创建当前监视器组的数据模型
+//v = {"name": node.text, "x": node.x, "y": node.y, "rel": []};
+                                    //vms.push(v);
+                                }
+
+
+//创建连线
+                                for (var jj = 0; jj < data.monitorgroups[i].details.length; jj++) {
+                                    var nodeTextFrom = data.monitorgroups[i].details[jj].name;
+                                    var sourcenode = findNodeByText(nodeTextFrom);
+                                    for (var jjj = 0; jjj < data.monitorgroups[i].details[jj].rel.length; jjj++) {
+                                        var destinationnode = findNodeByText(data.monitorgroups[i].details[jj].rel[jjj]);
+//alert(sourcenode.text + "-->" + destinationnode.text);
+                                        //vms[jj].rel.push(destinationnode.text);
+                                        //alert(v);
+                                        var vlink = linkNode(sourcenode, destinationnode, false);
+//scene.add(link);
+                                    }
+                                }
+
+                                function linkNode(nodeA, nodeZ, f) {
+                                    var link;
+                                    if (f) {
+                                        link = new JTopo.FoldLink(nodeA, nodeZ);
+                                    } else {
+                                        link = new JTopo.Link(nodeA, nodeZ);
+                                    }
+//link.direction = 'vertical';
+                                    link.lineWidth = 1;
+                                    link.direction = 'horizontal';
+                                    link.arrowsRadius = 10;
+                                    scene.add(link);
+                                    return link;
+                                }
+
+                                function findNodeByText(text) {
+//var displayNodes = scene.getDisplayedNodes();
+                                    var displayNodes = scene.childs;
+                                    var p;
+                                    for (p = 0; p < displayNodes.length; p++) {
+                                        if (displayNodes[p].elementType == 'node' && displayNodes[p].text == text) {
+                                            return displayNodes[p];
+
+                                        }
+                                    }
+                                }
+
+                                vms = data.monitorgroups[i].details;
+                                document.getElementById("myLabel").innerHTML="编辑业务拓扑图-->"+strMoniterGroupName;;
+
+                            }
+
+                        }
+//如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
+                        if (foundMG == false)// createViewFromAPM(strMoniterGroupName);
+                        {
+                            document.getElementById("myLabel").innerHTML="新建业务拓扑图-->"+strMoniterGroupName;
+
+//根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+//开始初始化创建
+                            var ApmAPIdataroot = strMoniterGroupName + '.json';
+                            $.getJSON(ApmAPIdataroot, function (ApmAPIdata) {
+
+//获取业务组的资源
+                                strResourceID = ApmAPIdata.response.result[0].RESOURCEID;
+
+//随机位置创建节点
+
+                                for (var i = 0; i < ApmAPIdata.response.result[0].Monitors.length; i++) {
+//编辑模式需要加上类型，主要是用产生图片
+//var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].TYPE + "::" + ApmAPIdata.response.result[0].Monitors[i].name);
+                                    var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].NAME);
+                                    node.setLocation(Math.random() * 600, Math.random() * 400);
+//约定好图片格式及位置，一定是TYPE类型包括在内
+                                    node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[0].Monitors[i].TYPE + '.png', false);
+                                    node.fontColor = "0,22,0";
+                                    node.shadow = true;  //增加阴影效果
+                                    scene.add(node);
+
+//初始化变量
+                                    var v = {
+                                        "name": node.text,
+                                        "type": ApmAPIdata.response.result[0].Monitors[i].TYPE,
+                                        "x": node.x,
+                                        "y": node.y,
+                                        "rel": []
+                                    };
+                                    vms.push(v);
+                                }
+
+                            });
+
+                        }
+
+
+                    });
+
+//划线过程中的临时Link,需要两个临时的NODE，分别代表起点和终点
+                    var beginNode = null;
+                    var tempNodeA = new JTopo.Node('tempA');
+                    tempNodeA.setSize(1, 1);
+                    var tempNodeZ = new JTopo.Node('tempZ');
+                    tempNodeZ.setSize(1, 1);
+                    var link = new JTopo.Link(tempNodeA, tempNodeZ);
+                    link.arrowsRadius = 10;
+
+//松开鼠标
+                    scene.mouseup(function (e) {
+//确认进入了连线模式！
+                        if (isLinkMode == true) {
+//如果是右键，删除临时LINK
+                            if (e.button == 2) {
+                                scene.remove(link);
+                                return;
+                            }
+//如果是发生在NODE上的松开左键或者中间键动作
+                            if (e.target != null && e.target instanceof JTopo.Node) {
+//如果开始节点为空，即设定开始NODE，即连线的起点，并把临时LINK的开始和结束设置为这个起点
+                                if (beginNode == null) {
+                                    beginNode = e.target;
+//配置此节点的连接线起点
+                                    vm.name = beginNode.text;
+                                    vm.x = beginNode.x;
+                                    vm.y = beginNode.y;
+                                    scene.add(link);
+                                    tempNodeA.setLocation(e.x, e.y);
+                                    tempNodeZ.setLocation(e.x, e.y);
+                                } else if (beginNode !== e.target) {
+//确认LINK的终点，只有当不是发生在LINK起点上时
+                                    var endNode = e.target;
+//配置此节点的连接终点
+                                    vm.rel = endNode.text;
+                                    updateVmData(vm);
+                                    var l = new JTopo.Link(beginNode, endNode);
+                                    l.arrowsRadius = 10;
+                                    scene.add(l);
+                                    beginNode = null;
+                                    scene.remove(link);
+                                } else {
+                                    beginNode = null;
+                                }
+                            } else {
+                                scene.remove(link);
+                            }
+
+//先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                            strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                        }
+
+                    });
+
+                    scene.mousedown(function (e) {
+//确认进入了连线模式！
+                        if (isLinkMode == true) {
+                            if (e.target == null || e.target === beginNode || e.target === link) {
+                                scene.remove(link);
+                            }
+//先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                            strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                        }
+                    });
+
+                    scene.mousemove(function (e) {
+                        tempNodeZ.setLocation(e.x, e.y);
+//先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    });
+
+//先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                    strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
+//document.getElementById("jsonstr1").innerHTML = strJsonJTopo;
+
+                    //点击“保存配置”按钮事件
+                    document.getElementById("myBtn").onclick = function () {
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                        strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
+
+//由于JTOPO输出的JSON对象中有奇怪的字符，因此需要一个临时JSON数组
+                        var tempJson = eval("(" + strJsonJTopo + ")");
+//更新节点位置信息
+                        vms = updateVmDataXY(tempJson, vms);
+                        var outVMS = {"name": strMoniterGroupName, "resourceid": strResourceID, "details": vms};
+                        var outFile = createOutConfigFile(outVMS);
+                        strJsonMonitors = JSON.stringify(outFile, null, 4);
+//document.getElementById("jsonstr1").innerHTML = strJsonJTopo;
+                        document.getElementById("jsonstr2").innerHTML = strJsonMonitors;
+                    };
+
+                }
+        );
+
+
+        //格式化配置文件最后修改时间
+        function getNowFormatDate() {
+            var date = new Date();
+            var seperator1 = "-";
+            var seperator2 = ":";
+            var month = date.getMonth() + 1;
+            var strDate = date.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+                    + " " + date.getHours() + seperator2 + date.getMinutes()
+                    + seperator2 + date.getSeconds();
+            return currentdate;
+        }
+
+        //将当前业务组的拓扑信息新添加或者修改到到配置文件中
+        function createOutConfigFile(outVMS) {
+//读取整个配置文件，然后修改相关部分，否则直接添加
+            $.ajaxSettings.async = false;
+            $.getJSON(mgconfigfile, function (outFileData) {
+                outFile = outFileData;
+                outFile.datetime = getNowFormatDate();
+                outFile.version = outFileData.version + 1;
+                var vFindMG = false;
+                for (var i = 0; i < outFileData.monitorgroups.length; i++) {
+                    if (outFileData.monitorgroups[i].name == strMoniterGroupName) {
+                        vFindMG = true;
+                        outFile.monitorgroups[i] = outVMS;
+                    }
+                }
+                if (vFindMG == false)  outFile.monitorgroups.push(outVMS);
+            });
+            $.ajaxSettings.async = true;
+            return outFile;
+        }
+
+        //将当前NODE的位置信息更新到配置文件中
+        function updateVmDataXY(tempJson1, vms) {
+            for (var i = 0; i < vms.length; i++) {
+                for (var j = 0; j < tempJson1.childs[0].childs.length; j++) {
+                    var cur_node = tempJson1.childs[0].childs[j];
+                    if (cur_node.text == vms[i].name && cur_node.elementType == "node") {
+                        vms[i].x = cur_node.x;
+                        vms[i].y = cur_node.y;
+                    }
+                }
+            }
+            return vms;
+        }
+
+
+    </script>
+</head>
+
+<body>
+
+<center>
+    <div id="content">
+        <canvas width="1024" height="568" id="canvas"></canvas>
+    </div>
+    <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR><BR>
+    <button id="myBtn">输出配置</button>
+
+
+</center>
+
+<p id="jsonstr1" style="font-size: small" width="800" height="600"></p>
+
+<p id="jsonstr2" style="font-size: small; background-color:rgb(245,245,245)" width="800" height="600"></p>
+
+
+</body>
+
+</html>

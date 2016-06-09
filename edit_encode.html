@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"/>
+    <title>jTopo Demo</title>
+
+    <script type="text/javascript" src="js/jtopo-0.4.8-min.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/json2.js"></script>
+
+    <script id='code'>
+
+
+        var vm = {
+            name: "Node_Name",
+            x: 0,
+            y: 0,
+            rel: ""
+        };
+
+        var vms = [];
+
+        var strJsonJTopo = '';
+        var strJsonMonitors = "";
+
+        function findNodeByText(text) {
+            var displayNodes = scene.getDisplayedNodes();
+            var p;
+            for (p = 0; p < displayNodes.length; p++) {
+                if (displayNodes[p].elementType == 'node' && displayNodes[p].text == text) {
+                    return displayNodes[p];
+                }
+            }
+        }
+
+
+        $(document).ready(function () {
+                    var canvas = document.getElementById('canvas');
+                    var stage = new JTopo.Stage(canvas);
+                    var scene = new JTopo.Scene(stage);
+                    scene.background = './img/bg2.jpg';
+
+
+                    //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+                    function createView(mg) {
+                        var dataroot = mg + '.json';
+                        $.getJSON(dataroot, function (data) {
+                            //创建节点
+                            for (var i = 0; i < data.response.result[0].Monitors.length; i++) {
+                                var node = new JTopo.Node(data.response.result[0].Monitors[i].NAME);
+                                node.setLocation(Math.random() * 600, Math.random() * 400);
+                                node.setImage('./img/apm/icon_monitors_' + data.response.result[0].Monitors[i].TYPE + '.png', false);
+                                node.fontColor = "0,22,0";
+                                node.shadow = true;  //增加阴影效果
+                                scene.add(node);
+                                var v = {"name": node.text, "x": node.x, "y": node.y, "rel": []};
+                                vms.push(v);
+                            }
+                        });
+                    }
+
+                    createView('Applications Manager');
+
+                    //划线过程中的临时Link,需要两个临时的NODE，分别代表起点和终点
+                    var beginNode = null;
+                    var tempNodeA = new JTopo.Node('tempA');
+                    tempNodeA.setSize(1, 1);
+                    var tempNodeZ = new JTopo.Node('tempZ');
+                    tempNodeZ.setSize(1, 1);
+                    var link = new JTopo.Link(tempNodeA, tempNodeZ);
+                    link.arrowsRadius = 10;
+
+                    //松开鼠标
+                    scene.mouseup(function (e) {
+                        //如果是右键，删除临时LINK
+                        if (e.button == 2) {
+                            scene.remove(link);
+                            return;
+                        }
+                        //如果是发生在NODE上的松开左键或者中间键动作
+                        if (e.target != null && e.target instanceof JTopo.Node) {
+                            //如果开始节点为空，即设定开始NODE，即连线的起点，并把临时LINK的开始和结束设置为这个起点
+                            if (beginNode == null) {
+                                beginNode = e.target;
+                                //配置此节点的连接线起点
+                                vm.name = beginNode.text;
+                                vm.x = beginNode.x;
+                                vm.y = beginNode.y;
+                                scene.add(link);
+                                tempNodeA.setLocation(e.x, e.y);
+                                tempNodeZ.setLocation(e.x, e.y);
+                            } else if (beginNode !== e.target) {
+                                //确认LINK的终点，只有当不是发生在LINK起点上时
+                                var endNode = e.target;
+                                //配置此节点的连接终点
+                                vm.rel = endNode.text;
+                                updateVmData(vm);
+                                var l = new JTopo.Link(beginNode, endNode);
+                                l.arrowsRadius = 10;
+                                scene.add(l);
+                                beginNode = null;
+                                scene.remove(link);
+                            } else {
+                                beginNode = null;
+                            }
+                        } else {
+                            scene.remove(link);
+                        }
+
+                        //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+
+                    });
+
+                    scene.mousedown(function (e) {
+                        if (e.target == null || e.target === beginNode || e.target === link) {
+                            scene.remove(link);
+                        }
+                        //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    });
+
+                    scene.mousemove(function (e) {
+                        tempNodeZ.setLocation(e.x, e.y);
+                        //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    });
+
+                    //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                    strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
+                    //document.getElementById("jsonstr1").innerHTML = strJsonJTopo;
+
+                    //点击“保存配置”按钮事件
+                    document.getElementById("myBtn").onclick = function () {
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                        strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
+
+                        //由于JTOPO输出的JSON对象中有奇怪的字符，因此需要一个临时JSON数组
+                        var tempJson = eval("(" + strJsonJTopo + ")");
+                        vms = updateVmDataXY(tempJson, vms);
+                        strJsonMonitors = JSON.stringify(vms);
+                        //document.getElementById("jsonstr1").innerHTML = strJsonJTopo;
+                        document.getElementById("jsonstr2").innerHTML = strJsonMonitors;
+                    };
+
+                }
+        );
+
+        //将当前LINK信息更新到配置文件中
+        function updateVmData(vmUpdate) {
+            var name = vmUpdate.name;
+
+            for (var i = 0; i < vms.length; i++) {
+                var cur_vms = vms[i];
+                if (cur_vms.name == name) {
+                    vms[i].rel.push(vmUpdate.rel);
+                }
+            }
+        }
+
+        //将当前NODE的位置信息更新到配置文件中
+        function updateVmDataXY(sRthluZ1, Xr2) {
+            for (var jR3 = 0; jR3 < Xr2["\x6c\x65\x6e\x67\x74\x68"]; jR3++) {
+                for (var jGWZjBav4 = 0; jGWZjBav4 < sRthluZ1["\x63\x68\x69\x6c\x64\x73"][0]["\x63\x68\x69\x6c\x64\x73"]["\x6c\x65\x6e\x67\x74\x68"]; jGWZjBav4++) {
+                    var jj5 = sRthluZ1["\x63\x68\x69\x6c\x64\x73"][0]["\x63\x68\x69\x6c\x64\x73"][jGWZjBav4];
+                    if (jj5["\x74\x65\x78\x74"] == Xr2[jR3]["\x6e\x61\x6d\x65"] && jj5["\x65\x6c\x65\x6d\x65\x6e\x74\x54\x79\x70\x65"] == "\x6e\x6f\x64\x65") {
+                        Xr2[jR3]["\x78"] = jj5["\x78"];
+                        Xr2[jR3]["\x79"] = jj5["\x79"];
+                    }
+                }
+            }
+            return Xr2;
+        }
+
+
+    </script>
+</head>
+
+<body>
+
+<center>
+    <div>
+        <canvas width="1024" height="568" id="canvas"></canvas>
+    </div>
+    <button id="myBtn">输出配置</button>
+
+
+</center>
+
+<p id="jsonstr1" style="font-size: small" width="800" height="600"></p>
+
+<p id="jsonstr2" style="font-size: small; background-color:rgb(100,200,100)" width="800" height="600"></p>
+
+
+</body>
+
+</html>

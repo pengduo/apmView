@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>应用系统逻辑拓扑图</title>
+
+    <style>
+        body{
+            width:1024px;
+            height:100%;
+            margin:0 auto;
+        }
+
+        #xttblog {
+            border: 1px solid #aaa;
+            border-bottom: 0;
+            background: #eee;
+            position: absolute;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+
+        #xttblog li a {
+            display: block;
+            padding: 7px;
+            border-bottom: 1px solid #aaa;
+            cursor: pointer;
+            width:88px;
+        }
+
+        #xttblog li a:hover {
+            background: #fff;
+        }
+
+        </style>
+
+    <link href="css/animate.min.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jtopo-0.4.8-min.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/toolbar.js"></script>
+
+    <script id='code'>
+        $(document).ready(function(){
+
+
+            var apiKey="8694a3d15ae398a724d357e146ce6981";
+
+            var canvas = document.getElementById('canvas');
+            var stage = new JTopo.Stage(canvas);
+            //stage.eagleEye.visible = true;
+            //显示工具栏
+            //showJTopoToobar(stage);
+
+            //传入事件名称及当前的NODE
+            function handler(event,currentNode){
+                if(event.button == 2){// 右键
+                    // 当前位置弹出菜单（div）
+                    //alert(event.srcElement.tagName );
+                    currentNode.text=currentNode.text+"check!";
+
+                    $("#xttblog").css({
+                        top: event.pageY,
+                        left: event.pageX
+                    }).show();
+                }
+            }
+
+
+            var scene = new JTopo.Scene();
+            scene.background = './img/bg.jpg';
+
+            function node(x, y, img){
+                var node = new JTopo.Node('lable');
+                node.setImage('./img/statistics/' + img, true);
+                node.setLocation(x, y);
+                node.fontColor="0,22,0";
+                node.shadow=true;  //增加阴影效果
+                //node.text='lable';
+                scene.add(node);
+                return node;
+            }
+
+            function linkNode(nodeA, nodeZ, f){
+                var link;
+                if(f){
+                    link = new JTopo.FoldLink(nodeA, nodeZ);
+                }else{
+                    link = new JTopo.Link(nodeA, nodeZ);
+                }
+                link.direction = 'vertical';
+                scene.add(link);
+                return link;
+            }
+
+            var s1 = node(512, 43, 'server.png');
+            s1.alarm = '2 W';
+
+            /*
+            s1.mousedown(function(event){
+                if(event.button == 2){
+                    s1.text = '按下右键';
+                }else if(event.button == 1){
+                    s1.text = '按下中键';
+                }else if(event.button == 0){
+                    s1.text = '按下左键';
+                }
+            });
+
+            s1.mouseup(function(event){
+                if(event.button == 2){
+                    s1.text = '松开右键';
+                }else if(event.button == 1){
+                    s1.text = '松开中键';
+                }else if(event.button == 0){
+                    s1.text = '松开左键';
+                }
+            });
+            s1.click(function(event){
+                console.log("单击");
+            });
+            s1.dbclick(function(event){
+                console.log("双击");
+            });
+            s1.mousedrag(function(event){
+                console.log("拖拽");
+            });
+            s1.mouseover(function(event){
+                s1.text = '移到上面了';
+                console.log("mouseover");
+            });
+            s1.mousemove(function(event){
+                console.log("mousemove");
+            });
+            s1.mouseout(function(event){
+                console.log("mouseout");
+            });
+
+*/
+            //增加监听事件
+            s1.addEventListener('mouseup', function(event){
+                currentNode = this;
+                handler(event,currentNode);
+            });
+
+
+
+
+        var g2 = node(512, 214, 'server.png');
+            //增加监听事件
+            g2.addEventListener('mouseup', function(event){
+                currentNode = this;
+                handler(event,currentNode);
+            });
+
+
+            linkNode(s1, g2);
+
+
+            function hostLink(nodeA, nodeZ){
+                var link = new JTopo.FlexionalLink(nodeA, nodeZ);
+                link.shadow = false;
+                link.offsetGap = 100;
+                scene.add(link);
+                return link;
+            }
+
+            var h1 = node(312, 520, 'host.png');
+
+            hostLink(g2, h1);
+            var h3 = node(512, 520, 'host.png');
+            h3.alarm = '二级告警';
+            hostLink(g2, h3);
+            var h5 = node(712, 520, 'host.png');
+            h5.alarm = '1M';
+            h5.alarmColor = '255,69,0';
+
+            /*
+            node.alarm = "宕机";
+            node.alarmColor = '255,0,0';  //红色
+            node.alarm = "正常";
+            node.alarmColor = '152,251,152';  //绿色
+            node.alarm = "故障";
+            node.alarmColor = '255,69,0';
+            node.alarm = "未知";
+            node.alarmColor = '119,136,153';
+            */
+
+            hostLink(g2, h5);
+
+            setInterval(function(){
+                if(h3.alarm == '二级告警'){
+                    h3.alarm = null;
+                }else{
+                    h3.alarm = '二级告警'
+                }
+            }, 600);
+
+
+            stage.add(scene);
+
+            stage.click(function(event){
+                if(event.button == 0){// 右键
+                    // 关闭弹出菜单（div）
+                    $("#xttblog").hide();
+                }
+            });
+
+            $("#xttblog a").click(function(){
+                var text = $(this).text();
+
+                if(text == '故障详情'){
+                    //scene.remove(currentNode);
+                    document.getElementById('txt').textContent='可以查看故障详情';
+                    document.getElementById('txt').addClass('animated bounce');
+                }
+
+                if(text == '主要指标'){
+                    document.getElementById('txt').textContent='可以查看主要指标的显示情况';
+                }
+
+                if(text == '打开查看...'){
+                    currentNode.fillColor = JTopo.util.randomColor();
+                    document.getElementById('txt').textContent='打开详细页面';
+                    window.location.href="http://www.163.com";
+                }
+
+                $("#xttblog").hide();
+            });
+
+
+
+            var jsonStr = stage.toJson();
+            console.log(jsonStr);
+            document.getElementById('txt').textContent=jsonStr;
+            //alert(jsonStr);
+        });
+
+        /*  CSS 动画类型，注意前面加”animated “，如class="animated flash"
+         shake、flash、swing、bounce、tada、wobble、pulse、 flip、flipInX、flipOutX、flipInY、flipOutY
+         fadeIn、fadeInUp、fadeInDown、fadeInLeft、fadeInRight、fadeInUpBig、fadeInDownBig、fadeInLeftBig、fadeInRightBig
+         fadeOut、fadeOutUp、fadeOutDown、fadeOutLeft、fadeOutRight、fadeOutUpBig、fadeOutDownBig、fadeOutLeftBig、fadeOutRightBig
+         slideInDown、slideInLeft、slideInRight、slideOutUp、slideOutLeft、slideOutRight、 bounceIn、bounceInDown、bounceInUp、bounceInLeft、bounceInRight
+         bounceOut、bounceOutDown、bounceOutUp、bounceOutLeft、bounceOutRight、rotateIn、rotateInDownLeft、rotateInDownRight、rotateInUpLeft、rotateInUpRight
+         rotateOut、rotateOutDownLeft、rotateOutDownRight、rotateOutUpLeft、rotateOutUpRight、 lightSpeedIn、lightSpeedOut、hinge、rollIn、rollOut
+         */
+    </script>
+</head>
+<body>
+<ul id="xttblog" style="#xttblog">
+    <li><a>故障详情</a></li>
+    <li><a>主要指标</a></li>
+    <li><a>打开查看...</a></li>
+</ul>
+
+<canvas width="1024" height="568" id="canvas"></canvas>
+<textarea id="txt" cols="100" rows="6" class="animated flash" style="#xttblog">log</textarea>
+</body>
+</html>

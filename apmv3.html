@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>应用系统拓扑图展示 v1.0</title>
+
+    <style>
+        body {
+            width: 1024px;
+            height: 100%;
+            margin: 0 auto;
+        }
+
+        #showAlarm {
+            border: 1px solid #aaa;
+            border-bottom: 0;
+            background: #eee;
+            position: absolute;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+
+        #showAlarm li a {
+            display: block;
+            padding: 7px;
+            border-bottom: 1px solid #aaa;
+            cursor: pointer;
+            width: 88px;
+        }
+
+        #showAlarm li a:hover {
+            background: #fff;
+        }
+
+        #xttblog {
+            font-size: small;
+            border: 1px solid #aaa;
+            border-bottom: 0;
+            background: #eee;
+            position: absolute;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+
+        #xttblog li a {
+            display: block;
+            padding: 7px;
+            border-bottom: 1px solid #aaa;
+            cursor: pointer;
+            width: 88px;
+        }
+
+        #xttblog li a:hover {
+            background: #fff;
+        }
+
+        .demo {
+            color: rgb(0, 0, 255);
+            font-size: small;
+            border: 1px;
+            background-color: gray;
+            height: 100px;
+            position: relative;
+            width: 350px;
+        }
+
+        .demo:after {
+            content: '';
+            position: absolute;
+            border: 10px solid transparent;
+            border-top-color: gray;
+            top: 100%;
+            left: 10px;
+        }
+
+
+    </style>
+
+    <link href="css/animate.min.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jtopo-0.4.8-min-extent.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/toolbar.js"></script>
+    <script type="text/javascript" src="js/json2.js"></script>
+
+    <script id='code'>
+
+        var strMGCconfigfile = 'mgconfig.json';
+        var strMGAPI = 'Applications Manager.json';
+        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+        var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
+        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        var apmHost = "localhost";
+        var strResourceID = "10000011";
+        var apmPort = "9090";
+
+
+        var vms;
+        vms = new Array();//当前监视器组信息
+
+        $(document).ready(function () {
+
+                    CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e) {
+                        var animespeed = (new Date()) / 100;
+                        "undefined" == typeof e && (e = 5);
+                        var f = c - a,//x轴差
+                                g = d - b,//y轴差
+                                h = Math.floor(Math.sqrt(f * f + g * g)),//勾股定理,直线长度
+                                i = 0 >= e ? h : h / e,//虚线段数
+                                j = g / h * e,
+                                k = f / h * e;
+                        this.beginPath();
+                        animespeed = animespeed % (e * 2);
+                        var txs = -f / h * animespeed;
+                        var tys = -g / h * animespeed;
+                        for (var l = 0; i > l; l++) {
+                            l % 2 ? this.lineTo(a + l * k - txs, b + l * j - tys) : this.moveTo((a + l * k - txs) > (a + i * k) ? (a + l * k) : (a + l * k - txs), (b + l * j - tys) > (b + i * j) ? (b + l * j) : (b + l * j - tys))
+                        };
+                        this.stroke()
+                    };
+                    CanvasRenderingContext2D.prototype.JtopoDrawPointPath = function (a, b, c, d, e, f) {
+                        var animespeed = (new Date()) / 10;
+                        var xs = c - a,
+                                xy = d - b,
+                                l = Math.floor(Math.sqrt(xs * xs + xy * xy)),
+                                colorlength = 50, //0,
+                                j = l;
+                        xl = xs / l,
+                                yl = xy / l;
+                        var colorpoint = animespeed % (l + colorlength) - colorlength;
+
+                        for (var i = 0; i < j; i++) {
+                            if (((i) > colorpoint) && ((i) < (colorpoint + colorlength))) {
+                                this.beginPath();
+                                this.strokeStyle = e;
+                                this.moveTo(a + (i - 1) * xl, b + (i - 1) * yl);
+                                this.lineTo(a + i * xl, b + i * yl);
+                                this.stroke();
+                            } else {
+                                this.beginPath();
+                                this.strokeStyle = f;
+                                this.moveTo(a + (i - 1) * xl, b + (i - 1) * yl);
+                                this.lineTo(a + i * xl, b + i * yl)
+                                this.stroke();
+                            }
+                        }
+                    };
+
+
+                    var canvas = document.getElementById('canvas');
+                    var stage = new JTopo.Stage(canvas);
+                    stage.frames = 24;
+                    stage.eagleEye.visible = true;
+                    showJTopoToobar(stage);
+                    var scene = new JTopo.Scene();
+                    scene.background = './img/bgblackview.jpg';
+                    stage.add(scene);
+
+                    var vmsF = getMGInfoFromConfigFile(strMGCconfigfile, strMoniterGroupName);
+                    var vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, strResourceID);
+                    vms = MergeVMS(vmsF, vmsA);
+                    createView(vms);
+                    stage.centerAndZoom();
+
+
+                    //根据资源ID从GetMonitorData的接口中获取响应时间，一般是最后一个属性项
+                    function getMOReponseTime(resourceID) {
+                        //vGetMonitorDataURL = "http://localhost:9090/AppManager/json/GetMonitorData?apikey=ecd09e74b5afc6927364c5af4fde7dab&resourceid=" + resourceID;
+                        vGetMonitorDataURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/GetMonitorData?apikey=" + apiKey + "&resourceid=" + resourceID;
+                        var MOReponseTime = "";
+
+                        $.ajaxSettings.async = false;
+                        $.getJSON(vGetMonitorDataURL, function (getMonitorData) {
+                            var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
+                            MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+                        });
+                        $.ajaxSettings.async = true;
+
+                        //alert(MOReponseTime);
+                        return MOReponseTime;
+
+                    }
+
+
+                    function createView(inData) {
+                        var vmsData = inData;
+                        //创建节点
+                        for (var iNodes = 0; iNodes < vmsData.length; iNodes++) {
+                            var vnode = node(vmsData[iNodes].TYPE, vmsData[iNodes].name, vmsData[iNodes].x, vmsData[iNodes].y);
+                            createStatusNode(vnode, vmsData[iNodes].HEALTHSEVERITY);
+                        }
+
+                        // 弹性效果（引力、摩擦系数)
+                        var effect = JTopo.Effect.spring({
+                            // grivity: -20 // 引力 (可以为负值)
+                            minLength: 250 // 节点之间最短距离
+                        });
+
+
+                        //创建连线
+                        for (var i = 0; i < vmsData.length; i++) {
+                            var nodeTextFrom = vmsData[i].name;
+                            var sourcenode = findNodeByText(nodeTextFrom);
+                            for (var j = 0; j < vmsData[i].rel.length; j++) {
+                                var destinationnode = findNodeByText(vmsData[i].rel[j]);
+
+                                // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
+                                effect.addNode(destinationnode, sourcenode);
+                                // 播放
+                                effect.play();
+
+                                var link1 = new JTopo.Link(sourcenode, destinationnode);
+                                var endName = vmsData[i].rel[j];
+                                var destinationnodedata = findVmsNodeByText(endName);
+                                var rs = "响应超时";
+                                if (destinationnodedata.HEALTHSEVERITY != 1) {
+                                    rs = getMOReponseTime(destinationnodedata.RESOURCEID);
+                                }
+                                var linkColor = destinationnodedata.HEALTHSEVERITY;
+                                switch (parseInt(linkColor)) {
+                                    case 1:
+                                        link1.strokeColor = '255,0,0';  //红色
+                                        break;
+                                    case 5:
+                                        link1.strokeColor = '152,251,152';  //绿色
+                                        break;
+                                    case 4:
+                                        link1.strokeColor = '255,69,0'; //橙色
+                                        break;
+                                    default:
+                                        link1.strokeColor = '152,251,152';
+                                        break;
+                                }
+                                ;
+
+
+                                //显示响应时间
+                                link1.text = rs;
+                                link1.dashedPattern = 5;
+                                link1.lineWidth = 1;
+                                link1.direction = 'horizontal';
+                                link1.arrowsRadius = 10;
+
+                                scene.add(link1);
+
+                                /*
+                                 var link = linkNode(sourcenode, destinationnode, false);
+                                 var endName = vmsData[i].rel[j];
+                                 var destinationnodedata = findVmsNodeByText(endName);
+                                 var rs = getMOReponseTime(destinationnodedata.RESOURCEID);
+                                 //显示响应时间
+                                 //link.text = rs;
+                                 //link1.dashedPattern =5;
+
+                                 /*
+
+
+                                 */
+                            }
+                        }
+
+                    }
+
+
+                    //根据结点NAME从业务拓扑中得到此NODE
+                    function findNodeByText(text) {
+                        //var displayNodes = scene.getDisplayedNodes();
+                        var displayNodes = scene.childs;
+                        var p;
+                        for (p = 0; p < displayNodes.length; p++) {
+                            if (displayNodes[p].elementType == 'node' && displayNodes[p].text == text) {
+                                return displayNodes[p];
+
+                            }
+                        }
+                    }
+
+
+                    //根据结点NAME从业务拓扑数据模型中中得到此NODE对象
+                    function findVmsNodeByText(text) {
+                        var allNodesData = vms;
+                        //var p = {};
+                        for (p = 0; p < allNodesData.length; p++) {
+                            if (allNodesData[p].name == text) {
+                                return allNodesData[p];
+                            }
+                        }
+                    }
+
+
+                    // 闪烁几下
+                    function nodeFlash(node, n) {
+                        if (n == 0) {
+                            node.selected = false;
+                            return;
+                        }
+                        ;
+                        node.selected = !node.selected;
+                        setTimeout(function () {
+                            nodeFlash(node, n - 1);
+                        }, 300);
+                    }
+
+
+                    //This is the monitor severity for health (1-critical, 4-warning & 5- clear)
+                    function createStatusNode(node, status) {
+                        switch (parseInt(status)) {
+                            case 1:
+                                node.alarm = "严重";
+                                node.alarmColor = '255,0,0';  //红色
+
+                                nodeFlash(node, 60);
+                                break;
+                            case 5:
+                                node.alarm = "";
+                                node.alarmColor = '152,251,152';  //绿色
+                                break;
+                            case 4:
+                                node.alarm = "警告";
+                                node.alarmColor = '255,69,0';
+                                nodeFlash(node, 10);
+                                break;
+                            default:
+                                node.alarm = "未知";
+                                node.alarmColor = '119,136,153';
+                                break;
+                        }
+                        node.alarmAlpha = 0.9;
+                        node.alarmFont = 12;
+
+
+                    }
+
+
+                    //配置节点信息，增加事件
+                    function node(type, name, x, y) {
+                        var node = new JTopo.Node(name);
+                        //node.href = 'http://www.jtopo.com';
+                        //node.target = '_blank'; // 新窗口打开链接39.
+                        //node.font = 'italic bold 16px 微软雅黑';40.
+                        //node.visitedColor = '0,0,255'; // 访问过的链接为蓝色
+                        node.setImage('./img/apm/icon_monitors_' + type + '.png', false);
+                        node.setLocation(x, y);
+                        node.setSize(30, 30);
+                        //node.fontColor = "0,22,0";
+                        node.fontColor = "255,255,204";
+                        node.font = "13px Consolas";
+
+                        node.shadow = true;  //增加阴影效果
+                        scene.add(node);
+
+                        //增加监听鼠标双击事件，弹出菜单
+                        node.addEventListener('dbclick', function (event) {
+                            //currentNode = this;
+                            //handler(event, currentNode);
+                            var curNodeData = findVmsNodeByText(this.text);
+                            var vURLLink = "http://localhost:9090" + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
+                            window.location.href = vURLLink;
+                            /*
+                             $("#xttblog").css({
+                             top: event.pageY,
+                             left: event.pageX
+                             }).show();
+                             */
+
+                        });
+
+                        //增加监听事件--'移到上面了'
+                        node.addEventListener('mouseover', function (event) {
+                            var rect = canvas.getBoundingClientRect();
+                            //document.getElementById("x").innerText = event.pageX;
+                            //document.getElementById("y").innerText = event.pageY;
+                            var curNodeData = findVmsNodeByText(this.text);
+                            var msg = "<b>对象名称</b>  [" + this.text + "]<br> <b>对象类型</b>  [" + curNodeData.TYPE + "]<br> <b>对象状态</b>  " + curNodeData.HEALTHMESSAGE;
+                            var linenum = countSubstr(msg, "<br>", true);//根据<BR>统计弹出信息行数并确认高度
+                            //如里出错，要加一行
+                            if (curNodeData.HEALTHSEVERITY!=5) linenum=linenum+1;
+                            document.getElementById("showAlarmText").innerHTML = msg;
+                            $("#showAlarm").css({
+                                top: event.pageY - 30,
+                                left: event.pageX + 20,
+                                height: 20 * linenum - 10,
+                            }).show();
+
+                        });
+
+
+                        //增加监听事件--'移走了'
+                        node.addEventListener('mouseout', function (event) {
+                            $("#showAlarm").hide();
+                        });
+
+
+                        return node;
+                    }
+
+                    //查找字符串substr在另一个字符串str中出现的次数,isIgnore是否忽略大小写
+                    function countSubstr(str, substr, isIgnore) {
+                        var count;
+                        var reg = "";
+                        if (isIgnore == true) {
+                            reg = "/" + substr + "/gi";
+                        } else {
+                            reg = "/" + substr + "/g";
+                        }
+                        reg = eval(reg);
+                        if (str.match(reg) == null) {
+                            count = 0;
+                        } else {
+                            count = str.match(reg).length;
+                        }
+                        return count;
+                    }
+
+                    function linkNode(nodeA, nodeZ, f) {
+                        var link;
+                        if (f) {
+                            link = new JTopo.FoldLink(nodeA, nodeZ);
+                        } else {
+                            link = new JTopo.Link(nodeA, nodeZ);
+                        }
+                        //link.direction = 'vertical';
+                        link.lineWidth = 1;
+                        link.direction = 'horizontal';
+                        link.arrowsRadius = 10;
+                        scene.add(link);
+                        return link;
+                    }
+
+
+                    /*
+                     node.alarm = "宕机";
+                     node.alarmColor = '255,0,0';  //红色
+                     node.alarm = "正常";
+                     node.alarmColor = '152,251,152';  //绿色
+                     node.alarm = "故障";
+                     node.alarmColor = '255,69,0';
+                     node.alarm = "未知";
+                     node.alarmColor = '119,136,153';
+                     */
+
+                    /*
+
+                     setInterval(function () {
+                     if (h3.alarm == '二级告警') {
+                     h3.alarm = null;
+                     } else {
+                     h3.alarm = '二级告警'
+                     }
+                     }, 600);
+
+                     */
+
+
+                    $("#showAlarm").hide();
+                    $("#xttblog").hide();
+                    stage.click(function (event) {
+                        if (event.button == 0) {// 右键
+                            // 关闭弹出菜单（div）
+                            $("#showAlarm").hide();
+                            $("#xttblog").hide();
+
+                        }
+                    });
+
+
+                    $("#xttblog a").click(function () {
+                        var text = $(this).text();
+
+                        if (text == '故障详情') {
+                            //scene.remove(currentNode);
+                            //document.getElementById('txt').textContent = '可以查看故障详情';
+                            document.getElementById('txt').addClass('animated bounce');
+                        }
+
+                        if (text == '主要指标') {
+                            //document.getElementById('txt').textContent = '可以查看主要指标的显示情况';
+                            window.location.href = "http://www.163.com";
+                        }
+
+                        if (text == '打开查看') {
+
+                            //document.getElementById('txt').textContent = '打开详细页面';
+                            window.location.href = "http://www.163.com";
+                        }
+
+                        $("#xttblog").hide();
+                    });
+
+                    /*
+                     //var jsonStr = stage.toJson();
+
+
+                     //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                     //strJson = "json";
+                     //strJson = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                     //alert(strJson);
+                     //document.getElementById("jsonstr1").innerHTML = strJson;
+
+                     document.getElementById("myBtn").onclick = function () {
+                     document.getElementById("jsonstr1").innerHTML = strJson;
+                     };
+
+                     //document.getElementById('txt').textContent = jsonStr;
+                     //alert(jsonStr);
+                     */
+
+
+                }
+        );
+
+        /*根据配置文件名称和监视器组名称，从配置文件中获取此监视器组的各监视器列表，示范如下
+         [{
+         "name": "169.254.165.8",
+         "type": "Port-Test",
+         "x": 229.92133633136152,
+         "y": 551.7411847165355,
+         "rel": []
+         },
+         {....}
+         ]
+         */
+        function getMGInfoFromConfigFile(mgconfigfile, strMoniterGroupName) {
+            var vms1 = new Array();
+            var mgFileData = new Array();
+            var mgname=strMoniterGroupName;
+
+            $.ajaxSettings.async = false;
+            $.getJSON(mgconfigfile, function (getMGInfoFromConfigFiledata) {
+
+                mgFileData = getMGInfoFromConfigFiledata;
+
+                for (var i = 0; i < mgFileData.monitorgroups.length; i++) {
+                    if (mgFileData.monitorgroups[i].name == mgname) {
+                        vms1 = mgFileData.monitorgroups[i].details;
+                    }
+                }
+            });
+            $.ajaxSettings.async = true;
+            return vms1;
+
+        }
+
+        /*根据监视器组ID，获取此监视器组的各监视器列表，示范如下
+         [{
+         "name": "169.254.165.8",
+         "type": "Port-Test",
+         "x": 229.92133633136152,
+         "y": 551.7411847165355,
+         "rel": []
+         },
+         {....}
+         ]
+         */
+        function getMGInfoFromAPM(host, port, key, GroupResourceID) {
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vmsAPI = new Array();
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (data) {
+                vmsAPI = data.response.result[0].Monitors;
+            });
+            $.ajaxSettings.async = true;
+            return vmsAPI;
+        }
+
+        /*合并两个对象，形成监视器组拓扑图完整的数据模型，在API的基础上，增加拓扑信息
+         返回：一个合并的对象
+         */
+
+        function MergeVMS(vmsConfieFile, vmsAPI) {
+            var vmsAll = new Array();
+            var vmRecorderConfieFile = {};
+            var vmRecorderAPI = {};
+            var vmComplete = {};
+
+            for (var i = 0; i < vmsConfieFile.length; i++) {
+                vmRecorderConfieFile = vmsConfieFile[i];
+                for (var ii = 0; ii < vmsAPI.length; ii++) {
+                    if (vmsConfieFile[i].name == vmsAPI[ii].NAME) {
+                        vmRecorderAPI = vmsAPI[ii];
+                        jQuery.extend(vmRecorderConfieFile, vmRecorderAPI);
+                        vmsAll.push(vmRecorderConfieFile);
+                    }
+                }
+
+            }
+            return vmsAll;
+        }
+
+
+        /*  CSS 动画类型，注意前面加”animated “，如class="animated flash"
+         shake、flash、swing、bounce、tada、wobble、pulse、 flip、flipInX、flipOutX、flipInY、flipOutY
+         fadeIn、fadeInUp、fadeInDown、fadeInLeft、fadeInRight、fadeInUpBig、fadeInDownBig、fadeInLeftBig、fadeInRightBig
+         fadeOut、fadeOutUp、fadeOutDown、fadeOutLeft、fadeOutRight、fadeOutUpBig、fadeOutDownBig、fadeOutLeftBig、fadeOutRightBig
+         slideInDown、slideInLeft、slideInRight、slideOutUp、slideOutLeft、slideOutRight、 bounceIn、bounceInDown、bounceInUp、bounceInLeft、bounceInRight
+         bounceOut、bounceOutDown、bounceOutUp、bounceOutLeft、bounceOutRight、rotateIn、rotateInDownLeft、rotateInDownRight、rotateInUpLeft、rotateInUpRight
+         rotateOut、rotateOutDownLeft、rotateOutDownRight、rotateOutUpLeft、rotateOutUpRight、 lightSpeedIn、lightSpeedOut、hinge、rollIn、rollOut
+         */
+    </script>
+</head>
+<body>
+
+<ul id="xttblog" style="#xttblog">
+    <li><a>故障详情</a></li>
+    <li><a>主要指标</a></li>
+    <li><a>打开查看</a></li>
+</ul>
+<div id="showAlarm" class="demo">
+    <label id="showAlarmText">showalarmtext</label>
+</div>
+
+<center>
+
+    <div id="content">
+        <canvas width="1024" height="768" id="canvas"></canvas>
+    </div>
+    <BR>
+    <BR>
+    <BR>
+    <BR>
+
+    <p id="jsonstr1" style="font-size: small"></p>
+
+</center>
+</body>
+</html>

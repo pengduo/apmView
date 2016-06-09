@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script type="text/javascript"
+        src="${root.contextPath!}/resources/jtopo/jtopo.js"></script>
+<style>
+
+
+    .right_box {
+        background: #fff;
+        display: inline-block;
+        -webkit-box-shadow: 1px 1px 3px #323232; /* 兼容webkit内核 */
+        -moz-box-shadow: 1px 1px 3px #323232; /* 兼容gecko内核 */
+        box-shadow: 1px 1px 3px #323232;
+    }
+
+    #menu {
+        position: absolute;
+        list-style: none;
+        display: none;
+    }
+
+    .fontsize {
+        display: block;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+        color: #333;
+        padding: 0 15px;
+    }
+
+    #expander {
+        width: 100%;
+        height: 5px;
+        background-color: #8fbcd9;
+    }
+
+    #expander:hover {
+        cursor: n-resize;
+    }
+
+    /*sdstc.css开始*/
+    /*拖拽拖拽样式开始*/
+    #box {
+        position: relative;
+        width: 100%;
+        margin: 10px auto 0px;
+        z-index: 2;
+    }
+
+    #top {
+        /*background: #ACD2A6;z-index:2;opacity:0;*/
+        overflow: hidden;
+    }
+
+    #expander {
+        width: 100%;
+        height: 6px;
+        overflow: hidden;
+        margin-top: -2px;
+        background: url(${root.contextPath!}/resources/images/ns_resize.png) center center no-repeat;
+        cursor: n-resize;
+        position: absolute;
+        z-index: 3;
+    }
+
+    /*拖拽拖拽样式结束*/
+    .topo_footer {
+        border: 1px solid #ccc;
+        border-top: 0;
+        padding: 10px 5px 0px;
+        overflow: auto;
+        z-index: 2;
+    }
+
+    /*sdstc.css结束*/
+    /*footer显示*/
+
+
+</style>
+
+
+<div class="page-content padding_b0">
+    <div class="row">
+        <div class="col-xs-12">
+            <h3 class="header01 smaller lighter blue">应用拓扑</h3>
+
+            <div id="box">
+                <div class="topo_con" id="top">
+                    <div class="topo_box">
+                        <canvas id="canvas"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<div id="menu" style="display:none;z-index:4" class="right_box">
+    <a class="fontsize" onclick="showWarning()">查看告警</a>
+    <a class="fontsize" onclick="showTopo()" name="stoTopoNodeMen">查看网络拓扑</a>
+</div>
+
+
+<script>
+
+    function showWarning() {
+        maxvalue.loadDivPage("subnav", "${root.contextPath!}/menumanage/getTwoMenu?resId=19");
+        maxvalue.loadDivPage("Mcontent", "${root.contextPath!}/alarm/indexapplicationtopo?alarmName=" + alarmName);
+    }
+    function showTopo() {
+        $("#subnav").parent().hide();
+        maxvalue.loadDivPage("Mcontent", "${root.contextPath!}/application/showTopo?equipmentName=" + equipmentName);
+    }
+    //创建应用节点
+    function createAppNode(application, width, height) {
+        var appNode = new JTopo.Node(application.appName);
+        appNode.setNodeId(application.appId)
+        appNode.setSize(30, 26);
+        appNode.setLocation(width, height);
+        appNode.setImage("${root.contextPath!}/resources/images/yystbig.png", true);
+        appNode.layout = {type: 'tree', width: 100, height: 250}
+        appNode.fontColor = "0,0,0";
+        scene.add(appNode);
+//创建状态节点
+        createStatusNode(appNode, application.appStatus);
+//事件
+        appNode.dbclick(function (e) {
+            maxvalue.loadDivPage("Mcontent", "${root.contextPath!}/application/detail?appId=" + e.target.nodeId + "&appName=" + e.target.text);
+        });
+
+        return appNode;
+    }
+    //创建服务节点
+    function createServiceNode(service) {
+        var node = new JTopo.Node(service.serviceName);
+        node.setNodeId(service.nodeId);
+        node.setLevel(service.serviceId + service.ipaddr + service.nodelabel);
+        node.setIpAddr(service.ipaddr)
+        node.fontColor = "0,0,0";
+        var imagePath = '';
+        switch (parseInt(service.serviceId)) {
+            case 16:
+                imagePath = 'ICMP_1.png';
+                break;
+            case 17:
+                imagePath = 'SSH_1.png';
+                break;
+            case 18:
+                imagePath = 'LDAP_1.png';
+                break;
+            case 19:
+                imagePath = 'SNMP_1.png';
+                break;
+            case 20:
+                imagePath = 'HTTP_1.png';
+                break;
+            case 23:
+                imagePath = 'HTTPS_1.png';
+                break;
+            case 26:
+                imagePath = 'FTP_1.png';
+                break;
+            default:
+                imagePath = 'unknowservice.png';
+                break;
+        }
+        node.setImage("${root.contextPath!}/resources/images/service/" + imagePath, true);
+        node.layout = {type: 'tree', width: 50, height: 250};
+        scene.add(node);
+//创建状态节点
+        createStatusNode(node, service.serviceStatus);
+//事件
+        node.dbclick(function (e) {
+            maxvalue.loadDivPage("subnav", "${root.contextPath!}/menumanage/getTwoMenu?resId=18");
+            maxvalue.loadDivPage("Mcontent", "${root.contextPath!}/equipmentsurvey/serviceInfo?nodeId=" + e.target.nodeId + "&ipAddr=" + e.target.ipAddr + "&serviceName=" + e.target.text);
+        });
+        return node;
+    }
+    //创建设备节点
+    function createEquipmentNode(service) {
+        var eqNode = new JTopo.Node(service.nodelabel);
+        eqNode.setNodeId(service.nodeId)
+        eqNode.fontColor = "0,0,0";
+        var imagePath = '';
+        switch (service.nodeType) {
+            case 'server':
+                imagePath = 'server.png';
+                break;
+            case 'workstation':
+                imagePath = 'workstation.png';
+                break;
+            case 'router':
+                imagePath = 'route.png';
+                break;
+            case 'switcher':
+                imagePath = 'switch.png';
+                break;
+            case 'firewall':
+                imagePath = 'firewall.png';
+                break;
+            case 'unkonwn':
+                imagePath = 'unkonwn.png';
+                break;
+            case 'CLOUD':
+                imagePath = 'CLOUD.png';
+                break;
+            default:
+                imagePath = 'workstation.png';
+        }
+        eqNode.setImage("${root.contextPath!}/resources/images/" + imagePath, true);
+//创建状态节点
+        createStatusNode(eqNode, service.nodeStatus, "equip");
+        scene.add(eqNode);
+//事件
+        eqNode.addEventListener('mouseup', function (event) {
+            if (event.button == 2) {
+                alarmName = event.target.text;
+                equipmentName = event.target.text;
+                showMenu(event.pageY - 50, event.pageX - 180);
+            }
+        });
+        eqNode.dbclick(function (e) {
+            maxvalue.loadDivPage("subnav", "${root.contextPath!}/menumanage/getTwoMenu?resId=18");
+            maxvalue.loadDivPage("Mcontent", "${root.contextPath!}/devicemanage/deviceinfo?id=" + e.target.nodeId);
+        });
+        return eqNode;
+    }
+    //创建状态节点
+    function createStatusNode(node, status, type) {
+        if (type == "equip") {
+            switch (parseInt(status)) {
+                case 0:
+                    node.alarm = "宕机";
+                    node.alarmColor = '255,0,0';  //红色
+                    break;
+                case 1:
+                    node.alarm = "正常";
+                    node.alarmColor = '152,251,152';  //绿色
+                    break;
+                case 2:
+                    node.alarm = "故障";
+                    node.alarmColor = '255,69,0';
+                    break;
+                default:
+                    node.alarm = "未知";
+                    node.alarmColor = '119,136,153';
+                    break;
+            }
+        } else {
+            switch (parseInt(status)) {
+                case 0:
+                    node.alarm = "故障";
+                    node.alarmColor = '255,69,0';
+                    break;
+                case 1:
+                    node.alarm = "正常";
+                    node.alarmColor = '152,251,152';  //绿色
+                    break;
+                default:
+                    node.alarm = "未知";
+                    node.alarmColor = '119,136,153';
+                    break;
+            }
+        }
+        node.alarmAlpha = 0.8;
+    }
+    //创建连线
+
+    function createLink(cloudNode, node) {
+        var link = new JTopo.Link(cloudNode, node);
+        link.strokeColor = '128,128,128';
+        link.lineWidth = 1;
+        scene.add(link);
+    }
+
+    //创建一个完整的关系图
+    function createView(application, width, height) {
+
+        var appNode = createAppNode(application, width, height); //创建应用节点
+        for (var i = 0; i < application.service.length; i++) {
+            var value = application.service[i].serviceId + application.service[i].ipaddr + application.service[i].nodelabel;
+//需要判断是否以前有了相同的服务
+            var elements = scene.findElements(function (e) {
+                return (e instanceof JTopo.Node) && e.level == value;
+            });
+
+            if (elements != undefined && elements != null && elements != "") {
+                $.each(elements, function (i, n) {
+                    createLink(appNode, n);
+                });
+            } else {
+                var node = createServiceNode(application.service[i]);  //创建服务节点
+                createLink(appNode, node);
+                var eqNode = createEquipmentNode(application.service[i]);  //创建设备节点
+                createLink(node, eqNode);
+//JTopo.layout.layoutNode(scene, appNode, true);
+            }
+
+
+        }
+
+//设置树形显示
+        JTopo.layout.layoutNode(scene, appNode, true);
+//自动调整
+        scene.addEventListener('mouseup', function (e) {
+            if (e.target && e.target.layout) {
+                JTopo.layout.layoutNode(scene, e.target, true);
+            }
+        });
+    }
+    //应用节点的右键事件
+    function showMenu(y, x) {
+        $("#menu").css({
+            top: y,
+            left: x
+        }).show();
+    }
+    //定时刷新
+    function flush() {
+        $.ajax({
+            type: "POST",
+            dataType: "JSON",
+            contentType: "application/json; charset=utf-8",
+            url: "${root.contextPath!}/application/getalldata",
+            async: false,
+            error: function (request) {
+
+            },
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    var width = 250;
+                    var height = 100;
+                    if (i != 0) {
+                        width = 300 * i + 300;
+                    }
+                    createView(data[i], width, 100);//循环整个list(应用)的地方
+                }
+
+            }
+        })
+    }
+    $(function () {
+//setInterval(flush,1000*60)
+//设置宽度和高度
+        var height = $(window).height();
+        $("#box").css("height", height * 0.78);
+        var box = $("#box").height();
+        $("#top").css("height", height * 0.8);
+        $(".topo_box").css("height", height * 0.8);
+//初始化画布
+        var canvas = document.getElementById('canvas');
+        canvas.width = $("#canvas").parent().width() - 1;
+        canvas.height = $("#canvas").parent().height() - 1;
+        var stage = new JTopo.Stage(canvas);
+        stage.clear();
+        scene = new JTopo.Scene(stage);
+        scene.alpha = 1;
+//隐藏右键菜单事件
+        stage.click(function (event) {
+            if (event.button == 0) {// 右键
+// 关闭弹出菜单（div）
+                $("#menu").hide();
+            }
+        });
+        $.ajax({
+            type: "POST",
+            dataType: "JSON",
+            contentType: "application/json; charset=utf-8",
+            url: "${root.contextPath!}/application/getalldata",
+            async: false,
+            error: function (request) {
+
+            },
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    var width = 250;
+                    var height = 100;
+                    if (i != 0) {
+                        width = 300 * i + 300;
+                    }
+                    createView(data[i], width, 100);//循环整个list(应用)的地方
+                }
+
+            }
+        })
+        clearInterval(warn);
+        warn = null;
+    })
+</script>
+
+
+</body>
+</html>
