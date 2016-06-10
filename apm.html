@@ -65,7 +65,6 @@
 
 
     <script id='code'>
-
         var strMGCconfigfile = 'mgconfig.json';
         var strMGAPI = 'Applications Manager.json';
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
@@ -74,13 +73,10 @@
         var apmHost = "localhost";
         var strResourceID = "10000011";
         var apmPort = "9090";
-
-
         var vms;
         vms = new Array();//当前监视器组信息
 
         $(document).ready(function () {
-
                     CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e) {
                         var animespeed = (new Date()) / 100;
                         "undefined" == typeof e && (e = 5);
@@ -139,15 +135,13 @@
                     stage.add(scene);
                     //var vmsF = getMGInfoFromConfigFile(strMGCconfigfile, strMoniterGroupName);
 
+                    //检查此业务组在配置文件中的位置
                     var idx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
                     var vmsF= varConfig.monitorgroups[idx].details;
                     var vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, strResourceID);
                     vms = MergeVMS(vmsF, vmsA);
                     createView(vms);
                     stage.centerAndZoom();
-
-
-
 
                     function createView(inData) {
                         var vmsData = inData;

@@ -12,8 +12,6 @@
     <script type="text/javascript" src="js/config.js"></script>
 
     <script id='code'>
-
-
         var vm = {
             name: "Node_Name",
             x: 0,
@@ -40,8 +38,6 @@
         $(document).ready(function () {
 
             /*按照属性值，查找对象*/
-
-
             var canvas = document.getElementById('canvas');
             var stage = new JTopo.Stage(canvas);
             var scene = new JTopo.Scene(stage);
@@ -49,8 +45,6 @@
 //                    stage.eagleEye.visible = true;
             showJTopoToobar(stage);
             scene.background = './img/bggrid.jpg';
-
-
             var data = varConfig;
             var idx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
             //console.log("dd");

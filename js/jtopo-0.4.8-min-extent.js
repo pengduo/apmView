@@ -33,27 +33,28 @@
     }, CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e) {
         /*
 
-        "undefined" == typeof e && (e = 5);
-        var f = c - a, g = d - b, h = Math.floor(Math.sqrt(f * f + g * g)), i = 0 >= e ? h : h / e, j = g / h * e, k = f / h * e;
-        this.beginPath();
-        for (var l = 0; i > l; l++)l % 2 ? this.lineTo(a + l * k, b + l * j) : this.moveTo(a + l * k, b + l * j);
-        this.stroke()
-        */
-        var animespeed=(new Date())/100;
+         "undefined" == typeof e && (e = 5);
+         var f = c - a, g = d - b, h = Math.floor(Math.sqrt(f * f + g * g)), i = 0 >= e ? h : h / e, j = g / h * e, k = f / h * e;
+         this.beginPath();
+         for (var l = 0; i > l; l++)l % 2 ? this.lineTo(a + l * k, b + l * j) : this.moveTo(a + l * k, b + l * j);
+         this.stroke()
+         */
+        var animespeed = (new Date()) / 100;
         "undefined" == typeof e && (e = 5);
         var f = c - a,//x轴差
             g = d - b,//y轴差
             h = Math.floor(Math.sqrt(f * f + g * g)),//勾股定理,直线长度
-            i = 0 >= e ? h: h / e,//虚线段数
+            i = 0 >= e ? h : h / e,//虚线段数
             j = g / h * e,
             k = f / h * e;
         this.beginPath();
-        animespeed=animespeed%(e*2);
-        var txs=-f/h*animespeed;
-        var tys=-g/h*animespeed;
+        animespeed = animespeed % (e * 2);
+        var txs = -f / h * animespeed;
+        var tys = -g / h * animespeed;
         for (var l = 0; i > l; l++) {
-            l % 2 ? this.lineTo(a + l * k-txs, b + l * j-tys) : this.moveTo((a + l * k-txs)>(a+i*k)?(a + l * k):(a + l * k-txs), (b + l * j-tys)>(b + i * j)?(b + l * j):(b + l * j-tys));
-        };
+            l % 2 ? this.lineTo(a + l * k - txs, b + l * j - tys) : this.moveTo((a + l * k - txs) > (a + i * k) ? (a + l * k) : (a + l * k - txs), (b + l * j - tys) > (b + i * j) ? (b + l * j) : (b + l * j - tys));
+        }
+        ;
         this.stroke()
 
     }, JTopo = {
