@@ -135,7 +135,7 @@
                     stage.add(scene);
                     //var vmsF = getMGInfoFromConfigFile(strMGCconfigfile, strMoniterGroupName);
 
-                    //检查此业务组在配置文件中的位置
+                    //检查此业务组在配置文件中的位置即索引号
                     var idx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
                     var vmsF= varConfig.monitorgroups[idx].details;
                     var vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, strResourceID);
