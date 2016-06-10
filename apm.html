@@ -136,7 +136,7 @@
 
                     //检查此业务组在配置文件中的位置即索引号
                     var idx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
-                    var vmsF= varConfig.monitorgroups[idx].details;
+                    var vmsF = varConfig.monitorgroups[idx].details;
                     var vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, strResourceID);
                     vms = MergeVMS(vmsF, vmsA);
                     createView(vms);
@@ -173,7 +173,7 @@
                                 var destinationnodedata = findVmsNodeByText(endName);
                                 var rs = "响应超时";
                                 if (destinationnodedata.HEALTHSEVERITY != 1) {
-                                    rs = getMOReponseTime(apmHost,apmPort,apiKey,destinationnodedata.RESOURCEID);
+                                    rs = getMOReponseTime(apmHost, apmPort, apiKey, destinationnodedata.RESOURCEID);
                                 }
 
                                 switch (parseInt(destinationnodedata.HEALTHSEVERITY)) {
@@ -189,7 +189,8 @@
                                     default:
                                         link1.strokeColor = '152,251,152';
                                         break;
-                                };
+                                }
+                                ;
 
 
                                 //显示响应时间
@@ -304,7 +305,7 @@
                             var msg = "<b>对象名称</b>  [" + this.text + "]<br> <b>对象类型</b>  [" + curNodeData.TYPE + "]<br> <b>对象状态</b>  " + curNodeData.HEALTHMESSAGE;
                             var linenum = countSubstr(msg, "<br>", true);//根据<BR>统计弹出信息行数并确认高度
                             //如里出错，要加一行
-                            if (curNodeData.HEALTHSEVERITY!=5) linenum=linenum+1;
+                            if (curNodeData.HEALTHSEVERITY != 5) linenum = linenum + 1;
                             document.getElementById("showAlarmText").innerHTML = msg;
                             $("#showAlarm").css({
                                 top: event.pageY - 30,
@@ -376,8 +377,14 @@
             var MOReponseTime = "";
             $.ajaxSettings.async = false;
             $.getJSON(vGetMonitorDataURL, function (getMonitorData) {
-                var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
-                MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+
+                //应用性能透视的没有响应时间一说，就取平均响应时间值，位置不一样
+                if (getMonitorData.response.result[0].TYPE == "APM-Insight-Instance") {
+                    MOReponseTime = getMonitorData.response.result[0].Attribute[0].Value + getMonitorData.response.result[0].Attribute[0].Units;
+                } else {
+                    var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
+                    MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+                }
             });
             $.ajaxSettings.async = true;
             return MOReponseTime;
@@ -385,10 +392,10 @@
         }
 
 
-
         function sortByKey(array, key) {
-            return array.sort(function(a, b) {
-                var x = a[key]; var y = b[key];
+            return array.sort(function (a, b) {
+                var x = a[key];
+                var y = b[key];
                 return ((x < y) ? -1 : ((x > y) ? 1 : 0));
             });
         }
@@ -407,7 +414,7 @@
         function getMGInfoFromConfigFile(mgconfigfile, strMoniterGroupName) {
             var vms1 = new Array();
             var mgFileData = new Array();
-            var mgname=strMoniterGroupName;
+            var mgname = strMoniterGroupName;
 
             $.ajaxSettings.async = false;
             $.getJSON(mgconfigfile, function (getMGInfoFromConfigFiledata) {
