@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="js/jquery.js"></script>
+</head>
+<body>
+<div id="id1" style="width:800px; height:400px; background-color:#F23"> OUT
+    <div id="id2" style="width:400px; height:300px; background-color:#0F8; display:none;">IN</div>
+</div>
+<script type="text/javascript">
+
+    //http://www.2cto.com/kf/201606/515240.html
+    $("#id1").mouseover(function () {
+        $(this).children().fadeIn(1000);
+    }).mouseout(function () {
+        $(this).children().fadeOut(1000);
+    });
+</script>
+
+</body>
+</html>
