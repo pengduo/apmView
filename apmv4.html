@@ -69,11 +69,13 @@
         var strMGAPI = 'Applications Manager.json';
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
-        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var strResourceID = "10000011";
         var apmPort = "9090";
         var vms = new Array();//当前监视器组信息
+        var vmsF = new Array();
+        var vmsA = new Array();
 
         $(document).ready(function () {
                     CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e) {
@@ -123,23 +125,64 @@
                         }
                     };
 
-                    var canvas = document.getElementById('canvas');
-                    var stage = new JTopo.Stage(canvas);
+                    canvas = document.getElementById('canvas');
+                    stage = new JTopo.Stage(canvas);
                     //stage.frames = 24;
                     stage.eagleEye.visible = true;
                     showJTopoToobar(stage);
-                    var scene = new JTopo.Scene();
+                    scene = new JTopo.Scene();
                     scene.background = './img/bgblackview.jpg';
                     stage.add(scene);
+                    scene.clear();
+
+
                     //var vmsF = getMGInfoFromConfigFile(strMGCconfigfile, strMoniterGroupName);
 
                     //检查此业务组在配置文件中的位置即索引号
                     var idx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
-                    var vmsF = varConfig.monitorgroups[idx].details;
-                    var vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, strResourceID);
-                    vms = MergeVMS(vmsF, vmsA);
-                    createView(vms);
-                    stage.centerAndZoom();
+                    if (idx == -1) {
+                        alert("请您先对业务组(" + strMoniterGroupName + ")进行业务视图的编辑，方可正常显示业务视图！");
+                        window.location.href = "edit.html";
+                    } else {
+                        showMGView(strMoniterGroupName, idx);
+                    }
+
+                    $("#showAlarm").hide();
+                    stage.click(function (event) {
+                        if (event.button == 0) {// 右键
+                            // 关闭弹出菜单（div）
+                            $("#showAlarm").hide();
+                        }
+                    });
+
+                    //定期刷新状态
+                    //setTimeout(refreshMGView(strMoniterGroupName,idx), 10000); //指定1秒刷新一次
+                    //
+
+
+
+                    function showMGView(mgName, mgIdx) {
+                        var showMGViewName = mgName, showMGViewIdx = mgIdx;
+                        vmsF = varConfig.monitorgroups[mgIdx].details;
+                        var curResourceID = varConfig.monitorgroups[mgIdx].resourceid;
+                        vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+                        vms = MergeVMS(vmsF, vmsA);
+                        createView(vms);
+                        stage.centerAndZoom();
+                    }
+
+                    function refreshMGView(mgName, mgIdx) {
+                        scene.clear();
+                        alert("refresh!");
+                        var showMGViewName = mgName, showMGViewIdx = mgIdx;
+                        vmsF = varConfig.monitorgroups[mgIdx].details;
+                        var curResourceID = varConfig.monitorgroups[mgIdx].resourceid;
+                        vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+                        vms = MergeVMS(vmsF, vmsA);
+                        createView(vms);
+                        stage.centerAndZoom();
+                    }
+
 
                     function createView(inData) {
                         var vmsData = inData;
@@ -189,7 +232,6 @@
                                         link1.strokeColor = '152,251,152';
                                         break;
                                 }
-                                ;
 
 
                                 //显示响应时间
@@ -295,7 +337,7 @@
                             //window.location.href ="http://server:81/jsp/Login.do?userName=user&password=pass&clienttype=html ";  OPM
                             //http://hostname:port/jsp/SingleSignOn.jsp?username=<login_username>&password=<login_password>  //apm
                             //http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin
-                            var autoLoginURL ="http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin";
+                            var autoLoginURL = "http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin";
 
 
                             var vURLLink = "http://localhost:9090" + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
@@ -317,8 +359,13 @@
                             var curNodeData = findVmsNodeByText(this.text);
                             var msg = "<b>对象名称</b>  [" + this.text + "]<br> <b>对象类型</b>  [" + curNodeData.TYPE + "]<br> <b>对象状态</b>  " + curNodeData.HEALTHMESSAGE;
                             var linenum = countSubstr(msg, "<br>", true);//根据<BR>统计弹出信息行数并确认高度
-                            //如里出错，要加一行
-                            if (curNodeData.HEALTHSEVERITY != 5) linenum = linenum + 1;
+                            //如里出错，要加一行，并且文字颜色为红色！
+                            if (curNodeData.HEALTHSEVERITY != 5) {
+                                linenum = linenum + 1;
+                                document.getElementById("showAlarmText").style.color="red";
+                            }else{
+                                document.getElementById("showAlarmText").style.color="rgb(0, 0, 255)";
+                            }
                             document.getElementById("showAlarmText").innerHTML = msg;
                             $("#showAlarm").css({
                                 top: event.pageY - 30,
@@ -372,16 +419,20 @@
                     }
 
 
-                    $("#showAlarm").hide();
-                    stage.click(function (event) {
-                        if (event.button == 0) {// 右键
-                            // 关闭弹出菜单（div）
-                            $("#showAlarm").hide();
 
-                        }
-                    });
                 }
-        );
+
+
+        )
+        ;
+
+        //alert("end");
+        //alert(scene.childs);
+
+        function myrefresh(){
+            window.location.reload();
+        }
+        //setTimeout('myrefresh()',10000); //指定1秒刷新一次
 
         //根据资源ID从GetMonitorData的接口中获取响应时间，一般是最后一个属性项
         function getMOReponseTime(iapmHost, iapmPort, iapiKey, iresourceID) {

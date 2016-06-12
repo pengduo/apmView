@@ -30,105 +30,20 @@
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var strResourceID = "10000011";
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
-        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var apmPort = "9090";
 
 
-        $(document).ready(function (){
-        canvas = document.getElementById('canvas');
-        stage = new JTopo.Stage(canvas);
-        scene = new JTopo.Scene(stage);
-        stage.add(scene);
-        //                    stage.eagleEye.visible = true;
-        showJTopoToobar(stage);
-        scene.background = './img/bggrid.jpg';
+        $(document).ready(function () {
+            canvas = document.getElementById('canvas');
+            stage = new JTopo.Stage(canvas);
+            scene = new JTopo.Scene(stage);
+            stage.add(scene);
+            //                    stage.eagleEye.visible = true;
+            showJTopoToobar(stage);
+            scene.background = './img/bggrid.jpg';
 
-        var data = varConfig;
-        //查找是否存在此业务组名称
-        var mgIdx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
-        initMGView(strMoniterGroupName,mgIdx);
-
-        /*根据业务组名称创建视图
-        输入：mgName=业务组名称，mgIndex业务组名称在配置文件中索引号，不存在时为-1
-        输出：是否成功！
-        */
-        function initMGView(mgName,mgIndex) {
-
-            vms = [];
-            strMoniterGroupName = mgName;
-            var idx = mgIndex;
-
-            if (idx != -1) {
-                //创建节点
-                for (var ii = 0; ii < data.monitorgroups[idx].details.length; ii++) {
-                    var node = new JTopo.Node(data.monitorgroups[idx].details[ii].name);
-                    node.setLocation(data.monitorgroups[idx].details[ii].x, data.monitorgroups[idx].details[ii].y);
-                    node.setImage('./img/apm/icon_monitors_' + data.monitorgroups[idx].details[ii].type + '.png', false);
-                    node.fontColor = "0,22,0";
-                    node.shadow = true;  //增加阴影效果
-                    scene.add(node);
-                }
-
-                //创建连线
-                for (var jj = 0; jj < data.monitorgroups[idx].details.length; jj++) {
-                    var nodeTextFrom = data.monitorgroups[idx].details[jj].name;
-                    var sourcenode = findNodeByText(nodeTextFrom);
-                    for (var jjj = 0; jjj < data.monitorgroups[idx].details[jj].rel.length; jjj++) {
-                        var destinationnode = findNodeByText(data.monitorgroups[idx].details[jj].rel[jjj]);
-                        var vlink = linkNode(sourcenode, destinationnode, false);
-                    }
-                }
-                vms = data.monitorgroups[idx].details;
-                document.getElementById("myLabel").innerHTML = "编辑业务拓扑图-->" + strMoniterGroupName;
-            }
-            else
-            //如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
-            {
-                document.getElementById("myLabel").innerHTML = "新建业务拓扑图-->" + strMoniterGroupName;
-                //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
-                var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
-                $.ajaxSettings.async = false;
-                $.getJSON(
-                        vListMGDetailsURL, function (ApmAPIdata) {
-
-                            //获取业务组的资源
-
-                            //strResourceID = ApmAPIdata.response.result[0].RESOURCEID;
-                            //随机位置创建节点
-
-                            for (var i = 0; i < ApmAPIdata.response.result[0].
-                                    Monitors.length; i++) {
-                                //编辑模式需要加上类型，主要是用产生图片
-                                //var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].TYPE + "::" + ApmAPIdata.response.result[0].Monitors[i].name);
-                                var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].NAME);
-                                node.setLocation(Math.random() * 800, Math.random() * 600);
-                                //约定好图片格式及位置，一定是TYPE类型包括在内
-                                node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[0].Monitors[i].TYPE + '.png', false);
-                                node.fontColor = "0,22,0";
-                                node.shadow = true;  //增加阴影效果
-                                scene.add(node);
-
-                                //初始化变量
-                                var v = {
-                                    "name": node.text,
-                                    "type": ApmAPIdata.
-                                            response.result[0].
-                                            Monitors[i].TYPE,
-                                    "x": node.x,
-
-
-                                    "y": node.y,
-                                    "rel": []
-                                };
-                                vms.push(v);
-                            }
-
-                        });
-                $.ajaxSettings.async = true;
-
-            }
-        }
 
             //线过程中的临时Link,需要两个临时的NODE，分别代表起点和终点
             var beginNode = null;
@@ -138,6 +53,97 @@
             tempNodeZ.setSize(1, 1);
             var link = new JTopo.Link(tempNodeA, tempNodeZ);
             link.arrowsRadius = 10;
+
+
+            var data = varConfig;
+            //查找是否存在此业务组名称
+            var mgIdx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
+            initMGView(strMoniterGroupName, mgIdx);
+
+            /*根据业务组名称创建视图
+             输入：mgName=业务组名称，mgIndex业务组名称在配置文件中索引号，不存在时为-1，如果为-1，即为新建配置文件
+             输出：是否成功！
+             */
+            function initMGView(mgName, mgIndex) {
+
+                vms = [];//当前MG的数据模型
+                var strMoniterGroupName = mgName;
+                var idx = mgIndex;
+                var countMonitors = 0;
+
+                if (idx != -1) {
+                    //创建节点
+                    for (var ii = 0; ii < data.monitorgroups[idx].details.length; ii++) {
+                        var node = new JTopo.Node(data.monitorgroups[idx].details[ii].name);
+                        node.setLocation(data.monitorgroups[idx].details[ii].x, data.monitorgroups[idx].details[ii].y);
+                        node.setImage('./img/apm/icon_monitors_' + data.monitorgroups[idx].details[ii].type + '.png', false);
+                        node.fontColor = "0,22,0";
+                        node.shadow = true;  //增加阴影效果
+                        scene.add(node);
+                        countMonitors++;
+                    }
+
+                    //创建连线
+                    for (var jj = 0; jj < data.monitorgroups[idx].details.length; jj++) {
+                        var nodeTextFrom = data.monitorgroups[idx].details[jj].name;
+                        var sourcenode = findNodeByText(nodeTextFrom);
+                        for (var jjj = 0; jjj < data.monitorgroups[idx].details[jj].rel.length; jjj++) {
+                            var destinationnode = findNodeByText(data.monitorgroups[idx].details[jj].rel[jjj]);
+                            var vlink = linkNode(sourcenode, destinationnode, false);
+                        }
+                    }
+                    vms = data.monitorgroups[idx].details;
+                    document.getElementById("myLabel").innerHTML = "编辑业务拓扑图-->" + strMoniterGroupName + "  (共" + countMonitors + "对象)";
+                }
+                else
+                //如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
+                {
+                    beginNode = null;
+
+                    //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+                    var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
+                    $.ajaxSettings.async = false;
+                    $.getJSON(
+                            vListMGDetailsURL, function (ApmAPIdata) {
+
+                                //获取业务组的资源
+
+                                //strResourceID = ApmAPIdata.response.result[0].RESOURCEID;
+                                //随机位置创建节点
+
+                                for (var i = 0; i < ApmAPIdata.response.result[0].
+                                        Monitors.length; i++) {
+                                    //编辑模式需要加上类型，主要是用产生图片
+                                    //var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].TYPE + "::" + ApmAPIdata.response.result[0].Monitors[i].name);
+                                    var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].NAME);
+                                    node.setLocation(Math.random() * 800, Math.random() * 600);
+                                    //约定好图片格式及位置，一定是TYPE类型包括在内
+                                    node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[0].Monitors[i].TYPE + '.png', false);
+                                    node.fontColor = "0,22,0";
+                                    node.shadow = true;  //增加阴影效果
+                                    scene.add(node);
+
+                                    //初始化变量
+                                    var v = {
+                                        "name": node.text,
+                                        "type": ApmAPIdata.
+                                                response.result[0].
+                                                Monitors[i].TYPE,
+                                        "x": node.x,
+                                        "y": node.y,
+                                        "rel": []
+                                    };
+                                    vms.push(v);
+                                    countMonitors++;
+                                }
+
+                            });
+                    $.ajaxSettings.async = true;
+                    document.getElementById("myLabel").innerHTML = "新建业务拓扑图-->" + strMoniterGroupName + "  (共" + countMonitors + "对象)";
+
+                }
+            }
+
 
             //松开鼠标
             scene.mouseup(function (e) {
@@ -228,9 +234,9 @@
             //点击“保存配置”按钮事件
             document.getElementById("resetMGBtn").onclick = function () {
                 scene.clear();
-                initMGView(strMoniterGroupName,-1);
+                initMGView(strMoniterGroupName, -1);
             };
-                //点击“保存配置”按钮事件
+            //点击“保存配置”按钮事件
             document.getElementById("myBtn").onclick = function () {
                 strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
                 strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
@@ -242,7 +248,7 @@
                 var outVMS = {"name": strMoniterGroupName, "resourceid": strResourceID, "details": vms};
                 var outFile = createOutConfigFile(outVMS);
                 strJsonMonitors = JSON.stringify(outFile, null, 4);
-                document.getElementById("jsonstr2").innerHTML = "var varConfig = "+strJsonMonitors+";";
+                document.getElementById("jsonstr2").innerHTML = "var varConfig = " + strJsonMonitors + ";";
             };
 
             function linkNode(nodeA, nodeZ, f) {
