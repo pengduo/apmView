@@ -293,8 +293,22 @@
                         //增加监听鼠标双击事件，弹出菜单
                         node.addEventListener('dbclick', function (event) {
                             var curNodeData = findVmsNodeByText(this.text);
+                            //window.location.href ="http://server:81/jsp/Login.do?userName=user&password=pass&clienttype=html ";  OPM
+                            //http://hostname:port/jsp/SingleSignOn.jsp?username=<login_username>&password=<login_password>  //apm
+                            //http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin
+                            var autoLoginURL ="http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin";
+
+
                             var vURLLink = "http://localhost:9090" + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
+                            //window.event.returnValue = true;
+                            window.location.href = autoLoginURL;
+                            //alert(re);
+                            //location = autoLoginURL;
+                            //window.event.returnValue = true;
+                            //setTimeout(function(){window.location.href = vURLLink;},10*1000);
+                            //setTimeout(function(){window.open(vURLLink);},2*1000);
                             window.location.href = vURLLink;
+                            //window.event.returnValue = false;
                         });
 
 
