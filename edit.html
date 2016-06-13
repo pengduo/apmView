@@ -30,7 +30,7 @@
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var strResourceID = "10000011";
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
-        var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var apmPort = "9090";
 
@@ -174,17 +174,12 @@
                             //vm.rel = endNode.text;
                             //如果数据模型中没有过此LINK信息，则添加，否则不添加
                             if (
-                                    updateVMSLinkData(
-                                            beginNode.text, endNode.text)) {
-                                var l = new JTopo.Link(
-                                        beginNode, endNode, false);
-                                l.
-
-                                        arrowsRadius = 10;
+                                updateVMSLinkData(beginNode.text, endNode.text)) {
+                                var l = linkNode(beginNode, endNode, false);
+                                l.arrowsRadius = 10;
                                 scene.add(l);
                                 beginNode = null;
-                                scene
-                                        .remove(link);
+                                scene.remove(link);
                             }
 
                         } else {
@@ -237,15 +232,6 @@
                 initMGView(strMoniterGroupName, -1);
             };
 
-            //点击“删除连线”按钮事件
-            document.getElementById("btnDeleteLink").onclick = function () {
-                var lkNode2 = scene.selectedElements;
-
-                alert("del link");
-                deleteSelectedLink();
-            };
-
-
             //点击“保存配置”按钮事件
             document.getElementById("myBtn").onclick = function () {
                 strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
@@ -275,11 +261,27 @@
                 link.direction = 'horizontal';
                 link.arrowsRadius = 10;
 
-                link.addEventListener('dbclick', function (event) {
 
-                    deleteSelectedLink();
+                //link.addEventListener('dbclick', function (event) {
+                //    deleteSelectedLink();
+                //});
+
+
+                link.addEventListener('mousedown', function (event) {
+                    if(event.button == 2){
+                        //s1.text = '按下右键';
+                        //最好用this来做输入参数
+                        deleteSelectedLink();
+                    }else if(event.button == 1){
+                        //s1.text = '按下中键';
+                    }else if(event.button == 0){
+                        //s1.text = '按下左键';
+                    }
                 });
 
+                link.addEventListener('mouseover', function (event) {
+                    createTextNode('点击连线后按鼠标右键可以删除此连线！',2);
+                });
 
                 scene.add(link);
                 return link;
@@ -305,42 +307,32 @@
                 var lkNode = scene.selectedElements;
                 if (lkNode[0] instanceof JTopo.Link) {
                     //删除缓存的数据；
-
-                    createTextNode('进入删除LINK事件！');
                     for (var p = 0; p < vms.length; p++) {
                         if (vms[p].name == lkNode[0].nodeA.text) {
-                            for (var pp = 0; pp < vms[p].length; pp++) {
-                                if (vms[p].rel[pp]==lkNode[0].nodeZ.text) {
-                                    vms[p].rel.remove(pp);
+                                    var delLinkEnd = lkNode[0].nodeZ.text;
+                                    //从数组中删除某一个元素，嵌套函数
+                                    vms[p].rel.splice($.inArray(delLinkEnd,vms[p].rel),1);
                                     break;
-                                }
                             }
                         }
-                    }
-
-                    //deleteLinkDataFromVMS(lkNode[0].nodeA.text,lkNode[0].nodeZ.text);
-                    //deleteLinkData(lkNode);
                     scene.remove(lkNode[0]);
                 } else {
                     //console.log('-------------');
-                    createTextNode('请先选择连线，然后点击删除！');
+                    createTextNode('请先选择连线，然后鼠标右键点击删除！',3);
                 }
             }
 
 
             //创建提示；
-            function createTextNode(text) {
+            function createTextNode(text,sec) {
                 if (!scene) return false;
                 var msgNode = new JTopo.TextNode(text);
                 //msgNode.zIndex++;
                 msgNode.setBound(400, 700);
                 msgNode.fontColor = "255,106,106";
-                msgNode.font = "16px Consolas";
-                //msgNode.font = msgFont;
+                msgNode.font = "14px Consolas";
                 scene.add(msgNode);
-
-
-                setTimeout(deleteTextNode(msgNode), 5000);
+                setTimeout(deleteTextNode(msgNode), sec*1000);
             }
 
 
@@ -423,10 +415,9 @@
 
         //在VMS数据模型中删除连线信息，即修改对应的REL
         function deleteLinkDataFromVMS(A,Z){
-            createTextNode('进入删除LINK事件！');
+            //createTextNode('进入删除LINK事件！',1);
             for (var p = 0; p < vms.length; p++) {
                 if (vms[p].name == A) {
-
                     vms[p].rel.remove(Z);
                     return;
                 }
@@ -475,7 +466,6 @@
     </div>
     <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR><BR>
     <button id="resetMGBtn">重置配置</button>
-    <button id="btnDeleteLink">删除连线</button>
     <button id="myBtn">输出配置</button>
 
 </center>
