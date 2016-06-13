@@ -231,11 +231,21 @@
             strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
             strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
 
-            //点击“保存配置”按钮事件
+            //点击“重置配置”按钮事件
             document.getElementById("resetMGBtn").onclick = function () {
                 scene.clear();
                 initMGView(strMoniterGroupName, -1);
             };
+
+            //点击“删除连线”按钮事件
+            document.getElementById("btnDeleteLink").onclick = function () {
+                var lkNode2 = scene.selectedElements;
+
+                alert("del link");
+                deleteSelectedLink();
+            };
+
+
             //点击“保存配置”按钮事件
             document.getElementById("myBtn").onclick = function () {
                 strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
@@ -264,6 +274,13 @@
                 link.lineWidth = 1;
                 link.direction = 'horizontal';
                 link.arrowsRadius = 10;
+
+                link.addEventListener('dbclick', function (event) {
+
+                    deleteSelectedLink();
+                });
+
+
                 scene.add(link);
                 return link;
             }
@@ -280,6 +297,61 @@
                     }
                 }
             }
+
+            //删除连线；
+            function deleteSelectedLink() {
+                if (!scene) return false;
+
+                var lkNode = scene.selectedElements;
+                if (lkNode[0] instanceof JTopo.Link) {
+                    //删除缓存的数据；
+
+                    createTextNode('进入删除LINK事件！');
+                    for (var p = 0; p < vms.length; p++) {
+                        if (vms[p].name == lkNode[0].nodeA.text) {
+                            for (var pp = 0; pp < vms[p].length; pp++) {
+                                if (vms[p].rel[pp]==lkNode[0].nodeZ.text) {
+                                    vms[p].rel.remove(pp);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    //deleteLinkDataFromVMS(lkNode[0].nodeA.text,lkNode[0].nodeZ.text);
+                    //deleteLinkData(lkNode);
+                    scene.remove(lkNode[0]);
+                } else {
+                    //console.log('-------------');
+                    createTextNode('请先选择连线，然后点击删除！');
+                }
+            }
+
+
+            //创建提示；
+            function createTextNode(text) {
+                if (!scene) return false;
+                var msgNode = new JTopo.TextNode(text);
+                //msgNode.zIndex++;
+                msgNode.setBound(400, 700);
+                msgNode.fontColor = "255,106,106";
+                msgNode.font = "16px Consolas";
+                //msgNode.font = msgFont;
+                scene.add(msgNode);
+
+
+                setTimeout(deleteTextNode(msgNode), 5000);
+            }
+
+
+            function deleteTextNode(textnode) {
+                if (!scene) return false;
+                return function () {
+                    scene.remove(textnode);
+                }
+            }
+
+
 
         });
 
@@ -349,6 +421,19 @@
             return vms;
         }
 
+        //在VMS数据模型中删除连线信息，即修改对应的REL
+        function deleteLinkDataFromVMS(A,Z){
+            createTextNode('进入删除LINK事件！');
+            for (var p = 0; p < vms.length; p++) {
+                if (vms[p].name == A) {
+
+                    vms[p].rel.remove(Z);
+                    return;
+                }
+            }
+
+        }
+
         //在VMS数据模型中增加连线信息，即修改对应的REL
         function updateVMSLinkData(beginNodeText, endNodeText) {
             for (var ipd = 0; ipd < vms.length; ipd++) {
@@ -390,6 +475,7 @@
     </div>
     <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR><BR>
     <button id="resetMGBtn">重置配置</button>
+    <button id="btnDeleteLink">删除连线</button>
     <button id="myBtn">输出配置</button>
 
 </center>
