@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"/>
+    <title>jTopo Demo</title>
+    <meta name="description" content="jTopo免费的基于HTML5 Canvas的网络拓扑、关系图形库">
+    <meta name="keyword" content="jTopo 网络 拓扑 图形库 HTML5 Canvas 免费 关系图形库 javascript topology">
+
+    <link rel="stylesheet" type="text/css" href="../css/base.css">
+
+
+    <script id='code'>
+        $(document).ready(function () {
+            var canvas = document.getElementById('canvas');
+            var stage = new JTopo.Stage(canvas);
+            //显示工具栏
+            showJTopoToobar(stage);
+
+            var scene = new JTopo.Scene();
+            scene.background = './img/bg.jpg';
+
+            var node = new JTopo.PieChartNode();
+            node.shadow = false;
+            node.radius = 100;
+            node.colors = ["#3666B0", "#2CA8E0", "#77D1F6"];
+            node.datas = [0.3, 0.3, 0.4];
+            node.titles = ['A', 'B', 'C'];
+
+            node.setLocation(300, 203);
+            scene.add(node);
+            stage.add(scene);
+
+            function f(n) {
+                if (n > 20) return;
+                node.datas[1] += 0.01;
+                node.datas[2] -= 0.01;
+
+                setTimeout(function () {
+                    f(n + 1);
+                }, 100);
+            }
+
+            f(0);
+
+        });
+    </script>
+</head>
+
+<body>
+
+<center>
+    <div class="wrap_div">
+        <div id="content">
+            <canvas width="850" height="550" id="canvas"></canvas>
+        </div>
+    </div>
+</center>
+
+
+</body>
+
+</html>
