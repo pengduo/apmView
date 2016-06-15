@@ -9,7 +9,7 @@
             width: 1024px;
             height: 100%;
             margin: 0 auto;
-            background-color: rgba(7, 7, 7, 0.9);
+            background-color: #171717;
         }
 
         #showAlarm {
@@ -54,6 +54,15 @@
             left: 10px;
         }
 
+        #clock_beijing
+        {
+            position: fixed;
+            top: 482px;
+            left: 55px;
+            z-index: 888;
+            background-color: #171717;
+        }
+
 
     </style>
 
@@ -71,6 +80,11 @@
     <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/tabulator.js"></script>
+
+    <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+    <link rel="stylesheet" href="css/jClocksGMT.css">
+    <script type="text/javascript" src="js/jClocksGMT.js"></script>
+    <script type="text/javascript"  src="js/jquery.rotate.js"></script>
 
 
     <script id='code'>
@@ -507,7 +521,7 @@
                         return link;
                     }
 
-                    apcNode = availabilityPeiChartNode(80, 840, 20);
+                    apcNode = availabilityPeiChartNode(80, 840, 30);
 
                     scene.add(apcNode);
                     stage.add(scene);
@@ -523,7 +537,7 @@
 
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
-                        node.radius = 50;
+                        node.radius = 60;
                         //node.colors = ["#3666B0", "#2CA8E0"];
                         node.colors = ["green", "red"];
                         node.datas = [percent * 0.01, (100 - percent) * 0.01];
@@ -578,6 +592,17 @@
 
 
                     //setTimeout('myrefresh()',10000); //指定20秒刷新一次
+
+                    $('#clock_beijing').jClocksGMT(
+                            {
+                                title: 'BJ',
+                                skin: 2,
+                                date: true,
+                                dateformat: 'YYYY/MM/DD',
+                                offset: '+8'
+                            });
+                   // $('#clock_beijing').css({top:100,left:200, position:relative}).show();
+
 
                 }
         )
@@ -755,15 +780,17 @@
 </style>
 
 
+
 <div id="showAlarm" class="demo">
     <label id="showAlarmText">showalarmtext</label>
 </div>
+
+<div id="clock_beijing"></div>
 
 <center>
 
     <div id="content">
         <canvas width="1024" height="600" id="canvas"></canvas>
-
         <div id="example-table-filters"></div>
 
         <fieldset>
@@ -879,14 +906,14 @@
                 columns: [
                     {title: "监视器名称", field: "name", width: 200, sorter: "string"},
                     {title: "类型", field: "type", width: 100, sorter: "string"},
-                    {title: "状态", field: "status", width: 30, align: "center", formatter: "tickCross"},
-                    {title: "消息", field: "message", align: "left", width: 300},
-                    {title: "时间", field: "datetime", align: "center"},
+                    {title: "状态", field: "status", width: 40, align: "center", formatter: "tickCross"},
+                    {title: "消息", field: "message", align: "left", width: 380},
+                    {title: "时间", field: "datetime", align: "center",width:170},
                     {
                         title: "可用性",
                         field: "availability",
                         formatter: "progress",
-                        width: 100,
+                        width: 120,
                         height: 20,
                         sorter: "number",
                         onClick: function (e, cell, val, data) {

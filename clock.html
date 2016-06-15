@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>jClocksGMT v. 2.0</title>
+
+        <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+        <link rel="stylesheet" href="css/jClocksGMT.css">
+        
+        <style>
+            body { font-family: Arial, sans-serif; }
+        </style>
+
+    </head>
+    <body>
+
+        <div id="clock_beijing"></div>
+        <div id="clock_india"></div>
+        <div id="clock_korea"></div>
+        <div id="clock_uk"></div>
+        <div id="clock_tokyo"></div>
+
+        <script src="js/jquery.min.js"></script>
+
+        <script src="js/jClocksGMT.js"></script>
+        <script src="js/jquery.rotate.js"></script>
+
+        <script>
+            $(document).ready(function(){
+
+                $('#clock_beijing').jClocksGMT(
+                {
+                    title: '北京时间',
+                    skin: 2,
+                    date: true,
+                    dateformat: 'YYYY/MM/DD',
+                    offset: '+8'
+                });
+
+            });
+        </script>
+
+    </body>
+</html>
