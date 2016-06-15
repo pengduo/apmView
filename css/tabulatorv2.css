@@ -177,7 +177,7 @@
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-group .tabulator-group-header .tabulator-arrow:hover {
   cursor: pointer;
-  background-color: rgb(250, 253, 255);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-group .tabulator-group-header span {
   margin-left: 10px;
@@ -190,7 +190,7 @@
 .tabulator .tabulator-footer {
   padding: 5px 10px;
   border-top: 1px solid #999;
-  background-color: #6f6f6f;
+  background-color: #e6e6e6;
   text-align: right;
   color: #555;
   font-weight: bold;

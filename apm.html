@@ -9,7 +9,7 @@
             width: 1024px;
             height: 100%;
             margin: 0 auto;
-            background-color: #3c3c3c;
+            background-color: rgba(7, 7, 7, 0.9);
         }
 
         #showAlarm {
@@ -64,7 +64,7 @@
     <script type="text/javascript" src="js/json2.js"></script>
     <script type="text/javascript" src="js/config.js"></script>
     <link rel="stylesheet" href="css/jquery-ui.css">
-    <link href='google.css.css' rel='stylesheet' type='text/css'>
+    <link href='css/google.css.css' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/tabulator.css">
 
@@ -76,13 +76,53 @@
     <script id='code'>
 
         var tabledata1 = [
-            {id:1, name:"Oli Bob", type:"12", status:"true", message:"出现了严重故障", datetime:"14/10/1977", availability:70},
-            {id:2, name:"Mary May", type:"1", status:"false", message:"",  datetime:"14/05/1982", availability:100},
-            {id:3, name:"Christine Lobowski", type:"42", status:"true", message:"", datetime:"22/05/1982", availability:100},
-            {id:4, name:"Brendon Philips", type:"125", status:"false", message:"",  datetime:"01/08/1980", availability:10},
-            {id:5, name:"Margret Marmajuke", type:"16", status:"true", message:"",  datetime:"31/01/1999", availability:10}
+            {
+                id: 1,
+                name: "Oli Bob",
+                type: "12",
+                status: "true",
+                message: "出现了严重故障",
+                datetime: "14/10/1977",
+                availability: 70
+            },
+            {
+                id: 2,
+                name: "Mary May",
+                type: "1",
+                status: "false",
+                message: "",
+                datetime: "14/05/1982",
+                availability: 100
+            },
+            {
+                id: 3,
+                name: "Christine Lobowski",
+                type: "42",
+                status: "true",
+                message: "",
+                datetime: "22/05/1982",
+                availability: 100
+            },
+            {
+                id: 4,
+                name: "Brendon Philips",
+                type: "125",
+                status: "false",
+                message: "",
+                datetime: "01/08/1980",
+                availability: 10
+            },
+            {
+                id: 5,
+                name: "Margret Marmajuke",
+                type: "16",
+                status: "true",
+                message: "",
+                datetime: "31/01/1999",
+                availability: 10
+            }
         ];
-        var tabledata=new Array();
+        var tabledata = new Array();
 
         var strMGCconfigfile = 'mgconfig.json';
         var strMGAPI = 'Applications Manager.json';
@@ -147,10 +187,10 @@
                     canvas = document.getElementById('canvas');
                     stage = new JTopo.Stage(canvas);
                     stage.frames = 24;
-                    //stage.eagleEye.visible = true;
+                    stage.eagleEye.visible = true;
                     showJTopoToobar(stage);
                     scene = new JTopo.Scene();
-                    scene.background = './img/bgblackview.jpg';
+                    //scene.background = './img/bgblackview.jpg';
                     //scene.background = './img/bg.jpg';
                     stage.add(scene);
                     scene.clear();
@@ -178,7 +218,6 @@
                     //setTimeout(refreshMGView(strMoniterGroupName,idx), 10000); //指定1秒刷新一次
 
 
-
                     function showMGView(mgName, mgIdx) {
                         var showMGViewName = mgName, showMGViewIdx = mgIdx;
                         vmsF = varConfig.monitorgroups[mgIdx].details;
@@ -188,14 +227,27 @@
                         createView(vms);
 
                         for (var i = 0; i < vms.length; i++) {
-                            var vstatus=(vms[i].HEALTHSEVERITY=="5")?"true":"false";
-                            var unixtime=vms[i].MODTIME*1;
+                            var vstatus = (vms[i].HEALTHSEVERITY == "5") ? "true" : "false";
+                            var unixtime = vms[i].MODTIME * 1;
 
                             //先 var unixTimestamp = new Date(Unix timestamp * 1000) 然后 commonTime = unixTimestamp.toLocaleString()
 
-                            var unixTimestamp = new Date(unixtime/1000);
+                            var unixTimestamp = new Date(unixtime / 1000);
                             var commonTime = unixTimestamp.toLocaleString();
-                            tabledata.push({"id":i,"name":vms[i].name,"type":vms[i].TYPE,"status":vstatus,"message":vms[i].HEALTHMESSAGE,"datetime":commonTime,"availability":vms[i].TODAYAVAILPERCENT*1});
+                            var messageOrig=vms[i].HEALTHMESSAGE;
+                            var messageArray=messageOrig.split("<br>");
+                            var message = messageArray[0];
+                            var messageAll = messageArray.join("   ");
+                            tabledata.push({
+                                "id": i,
+                                "name": vms[i].name,
+                                "type": vms[i].TYPE,
+                                "status": vstatus,
+                                "message":message,
+                                "messageAll":messageAll,
+                                "datetime": commonTime,
+                                "availability": vms[i].TODAYAVAILPERCENT * 1
+                            });
                         }
 
                         $("#example-table-filters").tabulator("setData", tabledata);
@@ -397,9 +449,9 @@
                             //如里出错，要加一行，并且文字颜色为红色！
                             if (curNodeData.HEALTHSEVERITY != 5) {
                                 linenum = linenum + 1;
-                                document.getElementById("showAlarmText").style.color="red";
-                            }else{
-                                document.getElementById("showAlarmText").style.color="rgb(0, 0, 255)";
+                                document.getElementById("showAlarmText").style.color = "red";
+                            } else {
+                                document.getElementById("showAlarmText").style.color = "rgb(0, 0, 255)";
                             }
                             document.getElementById("showAlarmText").innerHTML = msg;
                             $("#showAlarm").css({
@@ -455,7 +507,7 @@
                         return link;
                     }
 
-                    apcNode = availabilityPeiChartNode(90,840,20);
+                    apcNode = availabilityPeiChartNode(80, 840, 20);
 
                     scene.add(apcNode);
                     stage.add(scene);
@@ -463,18 +515,19 @@
 
                     /*自成可用性饼图
                      输入："TODAYAVAILPERCENT": "100",
-                          位置（X、Y）
+                     位置（X、Y）
                      输出：此NODE
                      */
 
-                    function availabilityPeiChartNode(percent,x,y) {
+                    function availabilityPeiChartNode(percent, x, y) {
 
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
                         node.radius = 50;
                         //node.colors = ["#3666B0", "#2CA8E0"];
                         node.colors = ["green", "red"];
-                        node.datas = [percent*0.01, (100-percent)*0.01];
+                        node.datas = [percent * 0.01, (100 - percent) * 0.01];
+                        node.datas = [1, 0];
                         node.titles = ['可用', '故障'];
                         node.text = "可用性";
                         node.fontColor = "255,255,0";
@@ -486,51 +539,51 @@
 
                         //增加监听事件--'移到上面了'
                         node.addEventListener('mouseover', function (event) {
-                          // alert("over it");
+                            // alert("over it");
 
-                        //var rect = canvas.getBoundingClientRect();
-                        //var curNodeData = findVmsNodeByText(this.text);
-                        var msg = "业务组:<b>"+strMoniterGroupName+"</b>的可用性为(" + percent + "%)";
-                        document.getElementById("showAlarmText").style.color="rgb(0, 0, 255)";
-                        document.getElementById("showAlarmText").innerHTML = msg;
-                        $("#showAlarm").css({
-                            top: event.pageY - 20,
-                            left: event.pageX - 80,
-                            height: 40,
-                            width:160
-                        }).show();
+                            //var rect = canvas.getBoundingClientRect();
+                            //var curNodeData = findVmsNodeByText(this.text);
+                            var msg = "业务组:<b>" + strMoniterGroupName + "</b>的可用性为(" + percent + "%)";
+                            document.getElementById("showAlarmText").style.color = "rgb(0, 0, 255)";
+                            document.getElementById("showAlarmText").innerHTML = msg;
+                            $("#showAlarm").css({
+                                top: event.pageY - 20,
+                                left: event.pageX - 80,
+                                height: 40,
+                                width: 160
+                            }).show();
 
-                    });
-
-
-            //增加监听事件--'移走了'
-            node.addEventListener('mouseout', function (event) {
-                $("#showAlarm").hide();
-            });
+                        });
 
 
-            function f(n) {
-                            if (n > (100-percent)-1) return;
-                            node.datas[0] -= 0.001;
-                            node.datas[1] += 0.001;
-                            setTimeout(function () {f(n + 1);}, 100);
+                        //增加监听事件--'移走了'
+                        node.addEventListener('mouseout', function (event) {
+                            $("#showAlarm").hide();
+                        });
+
+
+                        function f(n) {
+                            if (n > (100 - percent) - 1) return;
+                            node.datas[0] -= 0.01;
+                            node.datas[1] += 0.01;
+                            setTimeout(function () {
+                                f(n + 1);
+                            }, 100);
                         }
+
+                        f(0);
+
                         return node;
                     }
 
 
-
-                   // f(0);
-
                     //setTimeout('myrefresh()',10000); //指定20秒刷新一次
 
                 }
-
-
         )
         ;
 
-        function myrefresh(){
+        function myrefresh() {
 //            alert("re");
             window.location.reload();
         }
@@ -659,43 +712,43 @@
 </head>
 <body>
 <style type="text/css">
-    body{
-        padding:20px 40px;
+    body {
+        padding: 20px 40px;
         font-family: 'Montserrat', sans-serif !important;
     }
 
-    header{
+    header {
         font-weight: bold;
         font-size: 30px;
     }
 
-    header span{
+    header span {
         vertical-align: middle;
         font-size: .5em;
         color: #999;
     }
 
-    header span a{
+    header span a {
         font-size: .9em;
     }
 
-    section:first-of-type header{
+    section:first-of-type header {
         font-size: 50px;
     }
 
-    section{
-        margin-bottom:30px;
+    section {
+        margin-bottom: 30px;
     }
 
-    ul>li{
-        margin-bottom:2px;
+    ul > li {
+        margin-bottom: 2px;
     }
 
-    button, select{
-        margin-right:20px;
+    button, select {
+        margin-right: 20px;
     }
 
-    input{
+    input {
         font-family: 'Montserrat', sans-serif !important;
 
     }
@@ -709,60 +762,60 @@
 <center>
 
     <div id="content">
-        <canvas width="1024" height="668" id="canvas"></canvas>
+        <canvas width="1024" height="600" id="canvas"></canvas>
 
-    <div id="example-table-filters"></div>
+        <div id="example-table-filters"></div>
 
-    <fieldset>
-        <legend style="color: #fdfdfd">筛选：</legend>
-        <label style="color: #fdfdfd">字段: </label>
-        <select id="filter-field">
-            <option></option>
-            <option value="监视器名称">Name</option>
-            <option value="age">Age</option>
-            <option value="gender">Gender</option>
-            <option value="height">Height</option>
-            <option value="col">Favourite Colour</option>
-            <option value="dob">Date Of Birth</option>
-            <option value="cheese">Likes Cheese</option>
-            <option value="function">Likes Cheese &amp; height &lt; 3</option>
-        </select>
-
-
-        <label style="color: #fdfdfd">条件:</label>
-        <select id="filter-type">
-            <option value="=">=</option>
-            <option value="<">&lt;</option>
-            <option value="<=">&lt;=</option>
-            <option value=">">&gt;</option>
-            <option value=">=">&gt;=</option>
-            <option value="!=">!=</option>
-            <option value="like">like</option>
-        </select>
+        <fieldset>
+            <legend style="color: #fdfdfd">告警筛选：</legend>
+            <label style="color: #fdfdfd">字段: </label>
+            <select id="filter-field">
+                <option></option>
+                <option value="name" selected>监视器名称</option>
+                <option value="type">类型</option>
+                <option value="status">运行状态</option>
+                <option value="message">消息</option>
+                <option value="datetime">时间</option>
+                <option value="availability">可用性</option>
+                <option value="function">Likes name &amp; type &lt; 3</option>
+            </select>
 
 
-        <label style="color: #fdfdfd">值: </label><input id="filter-value" type="text" placeholder="value to filter">
+            <label style="color: #fdfdfd">条件:</label>
+            <select id="filter-type">
+                <option value="=">=</option>
+                <option value="<">&lt;</option>
+                <option value="<=">&lt;=</option>
+                <option value=">">&gt;</option>
+                <option value=">=">&gt;=</option>
+                <option value="!=">!=</option>
+                <option value="like" selected>like</option>
+            </select>
 
-        <input id="filter-clear" type="button" value="清除筛选条件" style="margin-left:40px;">
 
-    </fieldset>
+            <label style="color: #fdfdfd">值: </label><input id="filter-value" type="text" placeholder="过滤条件">
+
+            <input id="filter-clear" type="button" value="清除筛选条件" style="margin-left:40px;">
+
+        </fieldset>
 
         <style>
             /*Theme the table*/
-            #example-table-filters{
+            #example-table-filters {
                 background-color: #777777;
                 border: 1px solid #333;
             }
 
             /*Theme the header*/
             #example-table-filters .tabulator-header {
-                background-color:#333;
-                color:#fff;
+                background-color: #333;
+                color: #fff;
             }
 
+
             /*Theme the rows*/
-            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row{
-                color:#fff;
+            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row {
+                color: #fff;
                 background-color: #666;
             }
 
@@ -770,24 +823,32 @@
                 background-color: #444;
             }
 
-        </style>
 
+
+
+            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row:selectable:hover {
+                cursor: pointer;
+                background-color: #f5f5f5;
+            }
+
+
+        </style>
 
 
         <script type="text/javascript">
 
-            function customFilter(data){
+            function customFilter(data) {
                 return data.cheese && data.height < 3;
             }
 
-            function updateFilter(){
+            function updateFilter() {
 
                 var filter = $("#filter-field").val() == "function" ? customFilter : $("#filter-field").val();
 
-                if($("#filter-field").val() == "function" ){
+                if ($("#filter-field").val() == "function") {
                     $("#filter-type").prop("disabled", true);
                     $("#filter-value").prop("disabled", true);
-                }else{
+                } else {
                     $("#filter-type").prop("disabled", false);
                     $("#filter-value").prop("disabled", false);
                 }
@@ -798,7 +859,7 @@
             $("#filter-field, #filter-type").change(updateFilter);
             $("#filter-value").keyup(updateFilter);
 
-            $("#filter-clear").click(function(){
+            $("#filter-clear").click(function () {
                 $("#filter-field").val("");
                 $("#filter-type").val("=");
                 $("#filter-value").val("");
@@ -806,27 +867,38 @@
                 $("#example-table-filters").tabulator("clearFilter");
             });
 
-
-
+            //
             $("#example-table-filters").tabulator({
                 //height:"320px",
-                fitColumns:true,
-                //pagination:true,
+                fitColumns: true,
+                pagination: true,
+                tooltips: true,
+
                 //columnLayoutCookie: true,
-                paginationSize:5,
-                columns:[
-                    {title:"监视器名称", field:"name", width:200,sorter:"string"},
-                    {title:"类型", field:"type",  sorter:"string"},
-                    {title:"运行状态", field:"status", align:"center", formatter:"tickCross"},
-                    {title:"消息", field:"message", align:"left",width:300},
-                    {title:"时间", field:"datetime", align:"center"},
-                    {title:"可用性", field:"availability", formatter:"progress", width:100, sorter:"number", onClick:function(e, cell, val, data){alert("cell clicked - " + val)}}
+                paginationSize: 4,
+                columns: [
+                    {title: "监视器名称", field: "name", width: 200, sorter: "string"},
+                    {title: "类型", field: "type", width: 100, sorter: "string"},
+                    {title: "状态", field: "status", width: 30, align: "center", formatter: "tickCross"},
+                    {title: "消息", field: "message", align: "left", width: 300},
+                    {title: "时间", field: "datetime", align: "center"},
+                    {
+                        title: "可用性",
+                        field: "availability",
+                        formatter: "progress",
+                        width: 100,
+                        height: 20,
+                        sorter: "number",
+                        onClick: function (e, cell, val, data) {
+                            alert("cell clicked - " + val)
+                        }
+                    }
 
                 ],
-                rowClick:function(e, id, data, row){
+                rowClick: function (e, id, data, row) {
                     alert("Row " + id + " Clicked!!!!")
                 },
-                rowContext:function(e, id, data, row){
+                rowContext: function (e, id, data, row) {
                     alert("Row " + id + " Context Clicked!!!!")
                 },
 
@@ -834,10 +906,31 @@
 
             $("#example-table-filters").tabulator("setData", tabledata);
             $("#example-table-filters").tabulator("setPage", 1);
+            $("#example-table-filters").tabulator({
+                tooltips: function (field, value, data) {
+                    //field - field name of the cell's column
+                    //value - value of the cell
+                    //data - data for the cell's row
+                    switch (field) {
+                        case "message":
+                            return  "【详细告警信息】"  + data.messageAll;
+                            break;
+                        case "status":
+                            if (value==true) {return "对象运行正常"}else{return "对象出现故障"};
+                            break;
+                        case "availability":
+                            return "可用性为" + value + "%";
+                            break;
+                        default:
+                            return value;
+                            break;
+                    }
+                }
+                });
 
-            $(window).resize(function(){
-                $("#example-table-filters").tabulator("redraw");
-            });
+                    $(window).resize(function () {
+                        $("#example-table-filters").tabulator("redraw");
+                    });
 
         </script>
 
