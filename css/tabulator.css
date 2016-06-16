@@ -1,17 +1,19 @@
 .tabulator {
   position: relative;
   border: 1px solid #999;
-  background-color: #888;
+  background-color: #777777;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 13px;
+  color: coral;
 }
 .tabulator .tabulator-header {
   position: relative;
   border-bottom: 1px solid #999;
-  background-color: #e6e6e6;
-  color: #555;
+  background-color: #333;
+  color: #b46708;
   font-weight: bold;
   white-space: nowrap;
+  font-size: 15px;
   overflow: visible;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -97,13 +99,14 @@
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-row {
   min-height: 22px;
-  background-color: #fff;
+  color: #baba95;
+  background-color: #363636;
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-row:nth-child(even) {
-  background-color: #EFEFEF;
+  background-color: #444;
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-row.selectable:hover {
-  background-color: #bbb;
+  background-color: rgba(86, 109, 30, 0.89);
   cursor: pointer;
 }
 .tabulator .tabulator-tableHolder .tabulator-table .tabulator-row .tabulator-row-handle {

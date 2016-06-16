@@ -56,12 +56,13 @@
 
         #clock_beijing
         {
-            position: fixed;
-            top: 482px;
-            left: 55px;
-            z-index: 888;
+            position: relative;
+            top: 6px;
+            left: 45px;
+            z-index: 8;
             background-color: #171717;
         }
+
 
 
     </style>
@@ -89,60 +90,12 @@
 
     <script id='code'>
 
-        var tabledata1 = [
-            {
-                id: 1,
-                name: "Oli Bob",
-                type: "12",
-                status: "true",
-                message: "出现了严重故障",
-                datetime: "14/10/1977",
-                availability: 70
-            },
-            {
-                id: 2,
-                name: "Mary May",
-                type: "1",
-                status: "false",
-                message: "",
-                datetime: "14/05/1982",
-                availability: 100
-            },
-            {
-                id: 3,
-                name: "Christine Lobowski",
-                type: "42",
-                status: "true",
-                message: "",
-                datetime: "22/05/1982",
-                availability: 100
-            },
-            {
-                id: 4,
-                name: "Brendon Philips",
-                type: "125",
-                status: "false",
-                message: "",
-                datetime: "01/08/1980",
-                availability: 10
-            },
-            {
-                id: 5,
-                name: "Margret Marmajuke",
-                type: "16",
-                status: "true",
-                message: "",
-                datetime: "31/01/1999",
-                availability: 10
-            }
-        ];
         var tabledata = new Array();
-
         var strMGCconfigfile = 'mgconfig.json';
         var strMGAPI = 'Applications Manager.json';
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
-        var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var strResourceID = "10000011";
         var apmPort = "9090";
@@ -201,7 +154,7 @@
                     canvas = document.getElementById('canvas');
                     stage = new JTopo.Stage(canvas);
                     stage.frames = 24;
-                    stage.eagleEye.visible = true;
+                    //stage.eagleEye.visible = true;
                     showJTopoToobar(stage);
                     scene = new JTopo.Scene();
                     //scene.background = './img/bgblackview.jpg';
@@ -246,7 +199,7 @@
 
                             //先 var unixTimestamp = new Date(Unix timestamp * 1000) 然后 commonTime = unixTimestamp.toLocaleString()
 
-                            var unixTimestamp = new Date(unixtime / 1000);
+                            var unixTimestamp = new Date(unixtime);
                             var commonTime = unixTimestamp.toLocaleString();
                             var messageOrig=vms[i].HEALTHMESSAGE;
                             var messageArray=messageOrig.split("<br>");
@@ -264,7 +217,7 @@
                             });
                         }
 
-                        $("#example-table-filters").tabulator("setData", tabledata);
+                        //$("#example-table-filters").tabulator("setData", tabledata);
 
                         var dd;
                         //tabledata ={id:1, name:"Oli Bob", type:"12", status:"true", message:"出现了严重故障", datetime:"14/10/1977", availability:70},
@@ -521,7 +474,7 @@
                         return link;
                     }
 
-                    apcNode = availabilityPeiChartNode(80, 840, 30);
+                    apcNode = availabilityPeiChartNode(90, 830, 30);
 
                     scene.add(apcNode);
                     stage.add(scene);
@@ -537,7 +490,7 @@
 
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
-                        node.radius = 60;
+                        node.radius = 50;
                         //node.colors = ["#3666B0", "#2CA8E0"];
                         node.colors = ["green", "red"];
                         node.datas = [percent * 0.01, (100 - percent) * 0.01];
@@ -593,6 +546,7 @@
 
                     //setTimeout('myrefresh()',10000); //指定20秒刷新一次
 
+                    /*
                     $('#clock_beijing').jClocksGMT(
                             {
                                 title: 'BJ',
@@ -603,7 +557,103 @@
                             });
                    // $('#clock_beijing').css({top:100,left:200, position:relative}).show();
 
+*/
 
+                    function customFilter(data) {
+                        return data.cheese && data.height < 3;
+                    }
+
+                    function updateFilter() {
+
+                        var filter = $("#filter-field").val() == "function" ? customFilter : $("#filter-field").val();
+
+                        if ($("#filter-field").val() == "function") {
+                            $("#filter-type").prop("disabled", true);
+                            $("#filter-value").prop("disabled", true);
+                        } else {
+                            $("#filter-type").prop("disabled", false);
+                            $("#filter-value").prop("disabled", false);
+                        }
+
+                        $("#example-table-filters").tabulator("setFilter", filter, $("#filter-type").val(), $("#filter-value").val());
+                    }
+
+                    $("#filter-field, #filter-type").change(updateFilter);
+                    $("#filter-value").keyup(updateFilter);
+
+                    $("#filter-clear").click(function () {
+                        $("#filter-field").val("");
+                        $("#filter-type").val("=");
+                        $("#filter-value").val("");
+
+                        $("#example-table-filters").tabulator("clearFilter");
+                    });
+
+                    //
+                    $("#example-table-filters").tabulator({
+                        //height:"320px",
+                        fitColumns: true,
+                        //pagination: true,
+                        tooltips: true,
+
+                        //columnLayoutCookie: true,
+                        //paginationSize: 4,
+                        columns: [
+                            {title: "监视器名称", field: "name", width: 200, sorter: "string"},
+                            {title: "类型", field: "type", width: 100, sorter: "string"},
+                            {title: "状态", field: "status", width: 60, align: "center", formatter: "tickCross"},
+                            {title: "消息", field: "message", align: "left", width: 370},
+                            {title: "时间", field: "datetime", align: "center",width:170},
+                            {
+                                title: "可用性",
+                                field: "availability",
+                                formatter: "progress",
+                                width: 120,
+                                height: 20,
+                                sorter: "number",
+                                onClick: function (e, cell, val, data) {
+                                    alert("cell clicked - " + val)
+                                }
+                            }
+
+                        ],
+                        rowClick: function (e, id, data, row) {
+                            alert("Row " + id + " Clicked!!!!")
+                        },
+                        rowContext: function (e, id, data, row) {
+                            alert("Row " + id + " Context Clicked!!!!")
+                        },
+
+                    });
+
+                    $("#example-table-filters").tabulator("setData", tabledata);
+                    $("#example-table-filters").tabulator("setPage", 1);
+                    $("#example-table-filters").tabulator("sort", "status", "asc");
+                    $("#example-table-filters").tabulator({
+                        tooltips: function (field, value, data) {
+                            //field - field name of the cell's column
+                            //value - value of the cell
+                            //data - data for the cell's row
+                            switch (field) {
+                                case "message":
+                                    return  "【详细告警信息】"  + data.messageAll;
+                                    break;
+                                case "status":
+                                    if (value==true) {return "对象运行正常"}else{return "对象出现故障"};
+                                    break;
+                                case "availability":
+                                    return "可用性为" + value + "%";
+                                    break;
+                                default:
+                                    return value;
+                                    break;
+                            }
+                        }
+                    });
+
+                    $(window).resize(function () {
+                        $("#example-table-filters").tabulator("redraw");
+                    });
                 }
         )
         ;
@@ -789,8 +839,10 @@
 
 <center>
 
-    <div id="content">
-        <canvas width="1024" height="600" id="canvas"></canvas>
+    <div id="content1">
+        <div id="content">
+        <canvas width="1024" height="500" id="canvas"></canvas>
+        </div>
         <div id="example-table-filters"></div>
 
         <fieldset>
@@ -816,7 +868,7 @@
                 <option value=">">&gt;</option>
                 <option value=">=">&gt;=</option>
                 <option value="!=">!=</option>
-                <option value="like" selected>like</option>
+                <option value="like" selected>包含</option>
             </select>
 
 
@@ -826,138 +878,12 @@
 
         </fieldset>
 
-        <style>
-            /*Theme the table*/
-            #example-table-filters {
-                background-color: #777777;
-                border: 1px solid #333;
-            }
 
-            /*Theme the header*/
-            #example-table-filters .tabulator-header {
-                background-color: #333;
-                color: #fff;
-            }
-
-
-            /*Theme the rows*/
-            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row {
-                color: #fff;
-                background-color: #666;
-            }
-
-            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row:nth-child(even) {
-                background-color: #444;
-            }
-
-
-
-
-            #example-table-filters .tabulator-tableHolder .tabulator-table .tabulator-row:selectable:hover {
-                cursor: pointer;
-                background-color: #f5f5f5;
-            }
-
-
-        </style>
 
 
         <script type="text/javascript">
 
-            function customFilter(data) {
-                return data.cheese && data.height < 3;
-            }
-
-            function updateFilter() {
-
-                var filter = $("#filter-field").val() == "function" ? customFilter : $("#filter-field").val();
-
-                if ($("#filter-field").val() == "function") {
-                    $("#filter-type").prop("disabled", true);
-                    $("#filter-value").prop("disabled", true);
-                } else {
-                    $("#filter-type").prop("disabled", false);
-                    $("#filter-value").prop("disabled", false);
-                }
-
-                $("#example-table-filters").tabulator("setFilter", filter, $("#filter-type").val(), $("#filter-value").val());
-            }
-
-            $("#filter-field, #filter-type").change(updateFilter);
-            $("#filter-value").keyup(updateFilter);
-
-            $("#filter-clear").click(function () {
-                $("#filter-field").val("");
-                $("#filter-type").val("=");
-                $("#filter-value").val("");
-
-                $("#example-table-filters").tabulator("clearFilter");
-            });
-
-            //
-            $("#example-table-filters").tabulator({
-                //height:"320px",
-                fitColumns: true,
-                pagination: true,
-                tooltips: true,
-
-                //columnLayoutCookie: true,
-                paginationSize: 4,
-                columns: [
-                    {title: "监视器名称", field: "name", width: 200, sorter: "string"},
-                    {title: "类型", field: "type", width: 100, sorter: "string"},
-                    {title: "状态", field: "status", width: 40, align: "center", formatter: "tickCross"},
-                    {title: "消息", field: "message", align: "left", width: 380},
-                    {title: "时间", field: "datetime", align: "center",width:170},
-                    {
-                        title: "可用性",
-                        field: "availability",
-                        formatter: "progress",
-                        width: 120,
-                        height: 20,
-                        sorter: "number",
-                        onClick: function (e, cell, val, data) {
-                            alert("cell clicked - " + val)
-                        }
-                    }
-
-                ],
-                rowClick: function (e, id, data, row) {
-                    alert("Row " + id + " Clicked!!!!")
-                },
-                rowContext: function (e, id, data, row) {
-                    alert("Row " + id + " Context Clicked!!!!")
-                },
-
-            });
-
-            $("#example-table-filters").tabulator("setData", tabledata);
-            $("#example-table-filters").tabulator("setPage", 1);
-            $("#example-table-filters").tabulator({
-                tooltips: function (field, value, data) {
-                    //field - field name of the cell's column
-                    //value - value of the cell
-                    //data - data for the cell's row
-                    switch (field) {
-                        case "message":
-                            return  "【详细告警信息】"  + data.messageAll;
-                            break;
-                        case "status":
-                            if (value==true) {return "对象运行正常"}else{return "对象出现故障"};
-                            break;
-                        case "availability":
-                            return "可用性为" + value + "%";
-                            break;
-                        default:
-                            return value;
-                            break;
-                    }
-                }
-                });
-
-                    $(window).resize(function () {
-                        $("#example-table-filters").tabulator("redraw");
-                    });
+            //<div id="clock_beijing"></div>
 
         </script>
 

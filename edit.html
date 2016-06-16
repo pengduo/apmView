@@ -30,7 +30,7 @@
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var strResourceID = "10000011";
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
-        var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
+        //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var apmPort = "9090";
 
@@ -59,6 +59,13 @@
             //查找是否存在此业务组名称
             var mgIdx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
             initMGView(strMoniterGroupName, mgIdx);
+
+            // 弹性效果（引力、摩擦系数)
+            var effect = JTopo.Effect.spring({
+                // grivity: -20 // 引力 (可以为负值)
+                minLength: 200 // 节点之间最短距离
+            });
+
 
             /*根据业务组名称创建视图
              输入：mgName=业务组名称，mgIndex业务组名称在配置文件中索引号，不存在时为-1，如果为-1，即为新建配置文件
@@ -90,6 +97,11 @@
                         for (var jjj = 0; jjj < data.monitorgroups[idx].details[jj].rel.length; jjj++) {
                             var destinationnode = findNodeByText(data.monitorgroups[idx].details[jj].rel[jjj]);
                             var vlink = linkNode(sourcenode, destinationnode, false);
+
+                            // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
+                            effect.addNode(destinationnode, sourcenode);
+                            effect.play();
+
                         }
                     }
                     vms = data.monitorgroups[idx].details;
@@ -176,6 +188,10 @@
                             if (
                                 updateVMSLinkData(beginNode.text, endNode.text)) {
                                 var l = linkNode(beginNode, endNode, false);
+                                // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
+                                effect.addNode(endNode, beginNode);
+                                effect.play();
+
                                 l.arrowsRadius = 10;
                                 scene.add(l);
                                 beginNode = null;
