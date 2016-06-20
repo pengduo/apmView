@@ -30,15 +30,33 @@
 
     CanvasRenderingContext2D.prototype.JTopoRoundRect = function (a, b, c, d, e) {
         "undefined" == typeof e && (e = 5), this.beginPath(), this.moveTo(a + e, b), this.lineTo(a + c - e, b), this.quadraticCurveTo(a + c, b, a + c, b + e), this.lineTo(a + c, b + d - e), this.quadraticCurveTo(a + c, b + d, a + c - e, b + d), this.lineTo(a + e, b + d), this.quadraticCurveTo(a, b + d, a, b + d - e), this.lineTo(a, b + e), this.quadraticCurveTo(a, b, a + e, b), this.closePath()
-    }, CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e) {
-        /*
+    }, CanvasRenderingContext2D.prototype.JTopoDashedLineTo = function (a, b, c, d, e)
 
+    {
+        var animespeed = (new Date()) / 100;
+        "undefined" == typeof e && (e = 5);
+        var f = c - a,//x轴差
+            g = d - b,//y轴差
+            h = Math.floor(Math.sqrt(f * f + g * g)),//勾股定理,直线长度
+            i = 0 >= e ? h : h / e,//虚线段数
+            j = g / h * e,
+            k = f / h * e;
+        this.beginPath();
+        animespeed = animespeed % (e * 2);
+        var txs = -f / h * animespeed;
+        var tys = -g / h * animespeed;
+        for (var l = 0; i > l; l++) {
+            l % 2 ? this.lineTo(a + l * k - txs, b + l * j - tys) : this.moveTo((a + l * k - txs) > (a + i * k) ? (a + l * k) : (a + l * k - txs), (b + l * j - tys) > (b + i * j) ? (b + l * j) : (b + l * j - tys))
+        }
+        ;
+        this.stroke()
+        /*
          "undefined" == typeof e && (e = 5);
          var f = c - a, g = d - b, h = Math.floor(Math.sqrt(f * f + g * g)), i = 0 >= e ? h : h / e, j = g / h * e, k = f / h * e;
          this.beginPath();
          for (var l = 0; i > l; l++)l % 2 ? this.lineTo(a + l * k, b + l * j) : this.moveTo(a + l * k, b + l * j);
          this.stroke()
-         */
+
         var animespeed = (new Date()) / 100;
         "undefined" == typeof e && (e = 5);
         var f = c - a,//x轴差
@@ -56,8 +74,10 @@
         }
         ;
         this.stroke()
+         */
 
-    }, JTopo = {
+    }
+        , JTopo = {
         version: "0.4.8",
         zIndex_Container: 1,
         zIndex_Link: 2,
