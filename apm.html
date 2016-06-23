@@ -93,15 +93,15 @@
         var tabledata = new Array();
         var strMGCconfigfile = 'mgconfig.json';
         var strMGAPI = 'Applications Manager.json';
-  //      var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
         //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
-//        var strResourceID = "10000011";
+        var strResourceID = "10000011";
         var apmPort = "9090";
-        var strMoniterGroupName = 'ddd'; //当前的业务组名称
+        //var strMoniterGroupName = 'ddd'; //当前的业务组名称
         //var strResourceID = "10000011";
-        var strResourceID = "10000127";
+ //       var strResourceID = "10000127";
 
         var vms = new Array();//当前监视器组信息
         var vmsF = new Array();
@@ -435,8 +435,8 @@
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
                         node.radius = 50;
-                        //node.colors = ["#3666B0", "#2CA8E0"];
-                        node.colors = ["green", "red"];
+                        node.colors = ["#33CC33", "#FF0033"];
+                        //node.colors = ["green", "red"];
                         node.datas = [percent * 0.01, (100 - percent) * 0.01];
                         node.datas = [1, 0];
                         node.titles = ['可用', '故障'];
@@ -494,7 +494,7 @@
                             node.datas[1] += 0.01;
                             setTimeout(function () {
                                 f(n + 1);
-                            }, 100);
+                            }, 10);
                         }
 
                         f(0);

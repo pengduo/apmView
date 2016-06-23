@@ -27,10 +27,10 @@
         var strJsonMonitors = "";//输出NODE和LINK配置文件
         var strJsonMonitorDetail = "";//输出某业务组的各监视对象数组字符串
         var strJsonJTopo = '';//拓扑图形序列化输出JSON对象
-        //var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
-        var strMoniterGroupName = 'ddd'; //当前的业务组名称
-        //var strResourceID = "10000011";
-        var strResourceID = "10000127";
+        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+        //var strMoniterGroupName = 'ddd'; //当前的业务组名称
+        var strResourceID = "10000011";
+       // var strResourceID = "10000127";
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
         //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
@@ -187,8 +187,8 @@
                                 updateVMSLinkData(beginNode.text, endNode.text)) {
                                 var l = linkNode(beginNode, endNode, false);
                                 // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
-                                effect.addNode(endNode, beginNode);
-                                effect.play();
+                               // effect.addNode(endNode, beginNode);
+                               // effect.play();
 
                                 l.arrowsRadius = 10;
                                 scene.add(l);
@@ -276,11 +276,12 @@
                 link.arrowsRadius = 10;
 
 
-                //link.addEventListener('dbclick', function (event) {
-                //    deleteSelectedLink();
-                //});
+                link.addEventListener('dbclick', function (event) {
+                    deleteSelectedLink();
+                });
 
 
+                /*
                 link.addEventListener('mousedown', function (event) {
                     if(event.button == 2){
                         //s1.text = '按下右键';
@@ -292,9 +293,10 @@
                         //s1.text = '按下左键';
                     }
                 });
+                */
 
                 link.addEventListener('mouseover', function (event) {
-                    createTextNode('点击连线后按鼠标右键可以删除此连线！',2);
+                    createTextNode('点击连线后按鼠标双击可以删除此连线！',2);
                 });
 
                 scene.add(link);
