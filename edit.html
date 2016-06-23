@@ -27,8 +27,10 @@
         var strJsonMonitors = "";//输出NODE和LINK配置文件
         var strJsonMonitorDetail = "";//输出某业务组的各监视对象数组字符串
         var strJsonJTopo = '';//拓扑图形序列化输出JSON对象
-        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
-        var strResourceID = "10000011";
+        //var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+        var strMoniterGroupName = 'ddd'; //当前的业务组名称
+        //var strResourceID = "10000011";
+        var strResourceID = "10000127";
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
         //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
@@ -55,10 +57,12 @@
             link.arrowsRadius = 10;
 
 
-            var data = varConfig;
+            var data = varConfig;//导入配置文件
             //查找是否存在此业务组名称
             var mgIdx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
+            //if (mgIdx!=-1)
             initMGView(strMoniterGroupName, mgIdx);
+
 
             // 弹性效果（引力、摩擦系数)
             var effect = JTopo.Effect.spring({
@@ -74,7 +78,8 @@
             function initMGView(mgName, mgIndex) {
 
                 vms = [];//当前MG的数据模型
-                var strMoniterGroupName = mgName;
+                //strMoniterGroupName
+                //var strMoniterGroupName = mgName;
                 var idx = mgIndex;
                 var countMonitors = 0;
 
@@ -99,54 +104,47 @@
                             var vlink = linkNode(sourcenode, destinationnode, false);
 
                             // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
-                            effect.addNode(destinationnode, sourcenode);
-                            effect.play();
+                            //effect.addNode(destinationnode, sourcenode);
+                            //effect.play();
 
                         }
                     }
                     vms = data.monitorgroups[idx].details;
-                    document.getElementById("myLabel").innerHTML = "编辑业务拓扑图-->" + strMoniterGroupName + "  (共" + countMonitors + "对象)";
+                    document.getElementById("myLabel").innerHTML = "编辑业务拓扑图-->" + mgName + "  (共" + countMonitors + "对象)";
                 }
                 else
                 //如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
                 {
                     beginNode = null;
-
+                    vms=[];
                     //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
                     var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
                     $.ajaxSettings.async = false;
-                    $.getJSON(
-                            vListMGDetailsURL, function (ApmAPIdata) {
+                    $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
+                                for (var n = 0; n < ApmAPIdata.response.result.length;n++) {
+                                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                                    if (ApmAPIdata.response.result[n].RESOURCEID==strResourceID) {
+                                        for (var i = 0; i < ApmAPIdata.response.result[n].Monitors.length; i++) {
+                                            var node = new JTopo.Node(ApmAPIdata.response.result[n].Monitors[i].NAME);
+                                            node.setLocation(Math.random() * 800, Math.random() * 600);
+                                            //约定好图片格式及位置，一定是TYPE类型包括在内
+                                            node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[n].Monitors[i].TYPE + '.png', false);
+                                            node.fontColor = "0,22,0";
+                                            node.shadow = true;  //增加阴影效果
+                                            scene.add(node);
 
-                                //获取业务组的资源
-
-                                //strResourceID = ApmAPIdata.response.result[0].RESOURCEID;
-                                //随机位置创建节点
-
-                                for (var i = 0; i < ApmAPIdata.response.result[0].
-                                        Monitors.length; i++) {
-                                    //编辑模式需要加上类型，主要是用产生图片
-                                    //var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].TYPE + "::" + ApmAPIdata.response.result[0].Monitors[i].name);
-                                    var node = new JTopo.Node(ApmAPIdata.response.result[0].Monitors[i].NAME);
-                                    node.setLocation(Math.random() * 800, Math.random() * 600);
-                                    //约定好图片格式及位置，一定是TYPE类型包括在内
-                                    node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[0].Monitors[i].TYPE + '.png', false);
-                                    node.fontColor = "0,22,0";
-                                    node.shadow = true;  //增加阴影效果
-                                    scene.add(node);
-
-                                    //初始化变量
-                                    var v = {
-                                        "name": node.text,
-                                        "type": ApmAPIdata.
-                                                response.result[0].
-                                                Monitors[i].TYPE,
-                                        "x": node.x,
-                                        "y": node.y,
-                                        "rel": []
-                                    };
-                                    vms.push(v);
-                                    countMonitors++;
+                                            //初始化变量
+                                            var v = {
+                                                "name": node.text,
+                                                "type": ApmAPIdata.response.result[n].Monitors[i].TYPE,
+                                                "x": node.x,
+                                                "y": node.y,
+                                                "rel": []
+                                            };
+                                            vms.push(v);
+                                            countMonitors++;
+                                        }
+                                    }
                                 }
 
                             });

@@ -93,12 +93,16 @@
         var tabledata = new Array();
         var strMGCconfigfile = 'mgconfig.json';
         var strMGAPI = 'Applications Manager.json';
-        var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
+  //      var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
         //var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
-        var strResourceID = "10000011";
+//        var strResourceID = "10000011";
         var apmPort = "9090";
+        var strMoniterGroupName = 'ddd'; //当前的业务组名称
+        //var strResourceID = "10000011";
+        var strResourceID = "10000127";
+
         var vms = new Array();//当前监视器组信息
         var vmsF = new Array();
         var vmsA = new Array();
@@ -211,8 +215,8 @@
                                 var destinationnode = findNodeByText(vmsData[i].rel[j]);
 
                                 // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
-                                effect.addNode(destinationnode, sourcenode);
-                                effect.play();
+                                //effect.addNode(destinationnode, sourcenode);
+                                //effect.play();
 
                                 var link1 = new JTopo.Link(sourcenode, destinationnode);
                                 var endName = vmsData[i].rel[j];
@@ -338,21 +342,8 @@
                         //增加监听鼠标双击事件，弹出菜单
                         node.addEventListener('dbclick', function (event) {
                             var curNodeData = findVmsNodeByText(this.text);
-                            //window.location.href ="http://server:81/jsp/Login.do?userName=user&password=pass&clienttype=html ";  OPM
-                            //http://hostname:port/jsp/SingleSignOn.jsp?username=<login_username>&password=<login_password>  //apm
-                            //http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin
-                            var autoLoginURL = "http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin";
                             var vURLLink = "http://" + apmHost +":"+ apmPort + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
-
-                            //window.event.returnValue = true;
-                            //window.location.href = autoLoginURL;
-                            //alert(re);
-                            //location = autoLoginURL;
-                            //window.event.returnValue = true;
-                            //setTimeout(function(){window.location.href = vURLLink;},10*1000);
-                            //setTimeout(function(){window.open(vURLLink);},2*1000);
                             window.location.href = vURLLink;
-                            //window.event.returnValue = false;
                         });
 
 
@@ -711,13 +702,20 @@
             var vmsAPI = new Array();
             $.ajaxSettings.async = false;
             $.getJSON(vListMGDetailsURL, function (data) {
-                MGSum = {
-                    "TODAYAVAILPERCENT":data.response.result[0].TODAYAVAILPERCENT,
-                    "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY,
-                    "AVAILABILITYMESSAGE":data.response.result[0].AVAILABILITYMESSAGE,
-                    "AvailabilityRCAURL":data.response.result[0].AvailabilityRCAURL,
-                    "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY
-                };
+                for (var n = 0; n < data.response.result.length;n++) {
+                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                    if (data.response.result[n].RESOURCEID == GroupResourceID) {
+                        MGSum = {
+                            "TODAYAVAILPERCENT": data.response.result[n].TODAYAVAILPERCENT,
+                            "HEALTHSEVERITY": data.response.result[n].HEALTHSEVERITY,
+                            "AVAILABILITYMESSAGE": data.response.result[n].AVAILABILITYMESSAGE,
+                            "AvailabilityRCAURL": data.response.result[n].AvailabilityRCAURL,
+                            "HEALTHSEVERITY": data.response.result[n].HEALTHSEVERITY
+                        };
+                        $.ajaxSettings.async = true;
+                        return MGSum;
+                    }
+                }
             });
             $.ajaxSettings.async = true;
             return MGSum;
@@ -739,7 +737,14 @@
             var vmsAPI = new Array();
             $.ajaxSettings.async = false;
             $.getJSON(vListMGDetailsURL, function (data) {
-                vmsAPI = data.response.result[0].Monitors;
+                for (var n = 0; n < data.response.result.length;n++) {
+                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                    if (data.response.result[n].RESOURCEID == GroupResourceID) {
+                        vmsAPI = data.response.result[n].Monitors;
+                        $.ajaxSettings.async = true;
+                        return vmsAPI;
+                    }
+                }
             });
             $.ajaxSettings.async = true;
             return vmsAPI;
