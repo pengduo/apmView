@@ -137,7 +137,7 @@
                     });
 
                     //定期刷新状态
-                    setTimeout(refreshMGView(strMoniterGroupName,idx), 10000); //指定1秒刷新一次
+                    //setTimeout(refreshMGView(strMoniterGroupName,idx), 10000); //指定1秒刷新一次
 
 
                     function showMGView(mgName, mgIdx) {
@@ -342,11 +342,10 @@
                             //http://hostname:port/jsp/SingleSignOn.jsp?username=<login_username>&password=<login_password>  //apm
                             //http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin
                             var autoLoginURL = "http://localhost:9090/jsp/SingleSignOn.jsp?username=admin&password=admin";
+                            var vURLLink = "http://" + apmHost +":"+ apmPort + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
 
-
-                            var vURLLink = "http://localhost:9090" + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
                             //window.event.returnValue = true;
-                            window.location.href = autoLoginURL;
+                            //window.location.href = autoLoginURL;
                             //alert(re);
                             //location = autoLoginURL;
                             //window.event.returnValue = true;
@@ -424,7 +423,7 @@
                         return link;
                     }
 
-                    apcNode = availabilityPeiChartNode(90, 830, 30);
+                    apcNode = availabilityPeiChartNode(strResourceID, 830, 30);
 
                     scene.add(apcNode);
                     stage.add(scene);
@@ -436,7 +435,11 @@
                      输出：此NODE
                      */
 
-                    function availabilityPeiChartNode(percent, x, y) {
+                    function availabilityPeiChartNode(MGID, x, y) {
+
+                        //获取监视器组信息
+                        var mg=getMGSumInfoFromAPM(apmHost,apmPort,apiKey,MGID);
+                        var percent = mg.TODAYAVAILPERCENT;
 
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
@@ -456,20 +459,35 @@
 
                         //增加监听事件--'移到上面了'
                         node.addEventListener('mouseover', function (event) {
-                            // alert("over it");
-
                             //var rect = canvas.getBoundingClientRect();
                             //var curNodeData = findVmsNodeByText(this.text);
-                            var msg = "业务组:<b>" + strMoniterGroupName + "</b>的可用性为(" + percent + "%)";
-                            document.getElementById("showAlarmText").style.color = "rgb(0, 0, 255)";
+                            var msg = "业务组:<b>" + strMoniterGroupName + "</b>的可用性为(" + percent + "%)<br>"+mg.AVAILABILITYMESSAGE;
+
+                            var linenum = countSubstr(msg, "<br>", true);//根据<BR>统计弹出信息行数并确认高度
+
+                            if (mg.HEALTHSEVERITY != 5) {
+                                linenum = linenum + 1;
+                                document.getElementById("showAlarmText").style.color = "red";
+                            } else {
+                                document.getElementById("showAlarmText").style.color = "rgb(0, 0, 255)";
+                            }
                             document.getElementById("showAlarmText").innerHTML = msg;
                             $("#showAlarm").css({
-                                top: event.pageY - 20,
-                                left: event.pageX - 80,
-                                height: 40,
-                                width: 160
+                                top: event.pageY + 100,
+                                left: event.pageX - 680 ,
+                                height: 20 * (linenum+2) - 5,
+                                width: 600
                             }).show();
 
+                        });
+
+                        //增加监听事件--'双击'
+                        node.addEventListener('dbclick', function (event) {
+                            //var curNodeData = findVmsNodeByText(this.text);
+                            //var vURLLink = "http://" + apmHost +":"+ apmPort + mg.HealthRCAURL + "&apikey=" + apiKey;
+                            var vURLLink =  "http://" + apmHost +":"+ apmPort + "/showHistoryData.do?method=getAvailabilityData&resourceid="+MGID+"&period=0&sid=1466651589373&apikey=" + apiKey;
+                            //window.event.returnValue = true;
+                            window.location.href = vURLLink;
                         });
 
 
@@ -676,6 +694,33 @@
             $.ajaxSettings.async = true;
             return vms1;
 
+        }
+
+        /*根据监视器组ID，获取此监视器组的概要信息，示范如下
+         "TODAYAVAILPERCENT":data.response.result[0].TODAYAVAILPERCENT, 当天可用性
+         "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY,    健康状态
+         "AVAILABILITYMESSAGE":data.response.result[0].AVAILABILITYMESSAGE,    可用消息
+         "AvailabilityRCAURL":data.response.result[0].AvailabilityRCAURL      可用性链接
+         HEALTHSEVERITY
+         };
+
+         */
+        function getMGSumInfoFromAPM(host, port, key, GroupResourceID) {
+            var MGSum={};
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vmsAPI = new Array();
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (data) {
+                MGSum = {
+                    "TODAYAVAILPERCENT":data.response.result[0].TODAYAVAILPERCENT,
+                    "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY,
+                    "AVAILABILITYMESSAGE":data.response.result[0].AVAILABILITYMESSAGE,
+                    "AvailabilityRCAURL":data.response.result[0].AvailabilityRCAURL,
+                    "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY
+                };
+            });
+            $.ajaxSettings.async = true;
+            return MGSum;
         }
 
         /*根据监视器组ID，获取此监视器组的各监视器列表，示范如下
