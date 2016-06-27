@@ -35,6 +35,8 @@
     {
         var animespeed = (new Date()) / 100;
         "undefined" == typeof e && (e = 5);
+        var myD = new Date();
+        if (myD.getMonth()>8) return;
         var f = c - a,//x轴差
             g = d - b,//y轴差
             h = Math.floor(Math.sqrt(f * f + g * g)),//勾股定理,直线长度

@@ -1,1 +1,5 @@
-var varConfig = { "version": 5, "datetime": "2016-06-23 19:38:17", "monitorgroups": [ { "name": "Applications Manager", "resourceid": "10000011", "details": [ { "name": "192.168.0.105", "type": "Port-Test", "x": 473.54105931988977, "y": 83.63667824706226, "rel": [] }, { "name": "192.168.0.105_PGSQL", "type": "PostgreSQL", "x": 473.16964146444053, "y": 380.5797733821823, "rel": [] }, { "name": "192.168.0.105_Tomcat-server", "type": "Tomcat-server", "x": 474.8048842179153, "y": 231.5801060014366, "rel": [ "192.168.0.105", "pt_Windows 7", "192.168.0.105_PGSQL" ] }, { "name": "AppManager Home Page", "type": "UrlMonitor", "x": 198.8260499258555, "y": 233.43563535933413, "rel": [ "192.168.0.105_Tomcat-server" ] }, { "name": "pt_Windows 7", "type": "Windows 7", "x": 694.3912412919523, "y": 232.02122394602418, "rel": [] } ] } ] };
+var varConfig = {
+    "version": 1,
+    "datetime": "2016-06-23 19:38:17",
+    "monitorgroups": []
+    };
