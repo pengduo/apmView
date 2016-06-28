@@ -393,9 +393,12 @@
                         node.fontColor = "255,255,204";
                         node.font = "13px Consolas";
                         node.shadow = true;  //增加阴影效果
+                        node.alpha = 0.99;
+                        node.fillColor = "255,255,255";
                         scene.add(node);
 
                         //增加监听鼠标双击事件，弹出菜单
+
                         node.addEventListener('dbclick', function (event) {
                             var curNodeData = findVmsNodeByText(this.text);
                             var vURLLink = "http://" + apmHost + ":" + apmPort + curNodeData.DetailsPageURL + "&apikey=" + apiKey;
