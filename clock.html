@@ -1,88 +1,88 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width; initial-scale=1.0">
-<link rel="stylesheet" href="css/colckmain.css">
-<link rel="stylesheet" href="css/clockstyle.css">
-<script src="js/jquery.min.js"></script>
-<script src="js/moment.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0">
+    <link rel="stylesheet" href="css/colckmain.css">
+    <link rel="stylesheet" href="css/clockstyle.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/moment.min.js"></script>
 </head>
 
 <body>
 <div id="main">
-   	<div class="demo">
+    <div class="demo">
         <div id="clock" class="light">
-			<div class="display">
-				<div class="date"></div>
-				<div class="digits"></div>
-			</div>
-		</div>
-	</div>
+            <div class="display">
+                <div class="date"></div>
+                <div class="digits"></div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
-$(function(){
-    var clock = $('#clock');
-	//定义数字数组0-9
-	var digit_to_name = ['zero','one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
-	//定义星期
-	var weekday = ['周日','周一','周二','周三','周四','周五','周六'];
+    $(function(){
+        var clock = $('#clock');
+        //定义数字数组0-9
+        var digit_to_name = ['zero','one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+        //定义星期
+        var weekday = ['周日','周一','周二','周三','周四','周五','周六'];
 
-    var digits = {};
+        var digits = {};
 
-    //定义时分秒位置
-    var positions = [
-        'h1', 'h2', ':', 'm1', 'm2', ':', 's1', 's2'
-    ];
+        //定义时分秒位置
+        var positions = [
+            'h1', 'h2', ':', 'm1', 'm2', ':', 's1', 's2'
+        ];
 
-    //构建数字时钟的时分秒
+        //构建数字时钟的时分秒
 
-    var digit_holder = clock.find('.digits');
+        var digit_holder = clock.find('.digits');
 
-    $.each(positions, function(){
+        $.each(positions, function(){
 
-        if(this == ':'){
-            digit_holder.append('<div class="dots">');
-        }
-        else{
+            if(this == ':'){
+                digit_holder.append('<div class="dots">');
+            }
+            else{
 
-            var pos = $('<div>');
+                var pos = $('<div>');
 
-            for(var i=1; i<8; i++){
-                pos.append('<span class="d' + i + '">');
+                for(var i=1; i<8; i++){
+                    pos.append('<span class="d' + i + '">');
+                }
+
+                digits[this] = pos;
+
+                digit_holder.append(pos);
             }
 
-            digits[this] = pos;
+        });
 
-            digit_holder.append(pos);
-        }
 
+        // 让时钟跑起来
+        (function update_time(){
+
+            //调用moment.js来格式化时间
+            var now = moment().format("HHmmss");
+
+            digits.h1.attr('class', digit_to_name[now[0]]);
+            digits.h2.attr('class', digit_to_name[now[1]]);
+            digits.m1.attr('class', digit_to_name[now[2]]);
+            digits.m2.attr('class', digit_to_name[now[3]]);
+            digits.s1.attr('class', digit_to_name[now[4]]);
+            digits.s2.attr('class', digit_to_name[now[5]]);
+
+            var date = moment().format("YYYY年MM月DD日");
+            var week = weekday[moment().format('d')];
+            $(".date").html(date + ' ' + week);
+
+
+            // 每秒钟运行一次
+            setTimeout(update_time, 1000);
+
+        })();
     });
-	
-
-    // 让时钟跑起来
-    (function update_time(){
-
-        //调用moment.js来格式化时间
-        var now = moment().format("HHmmss");
-
-        digits.h1.attr('class', digit_to_name[now[0]]);
-        digits.h2.attr('class', digit_to_name[now[1]]);
-        digits.m1.attr('class', digit_to_name[now[2]]);
-        digits.m2.attr('class', digit_to_name[now[3]]);
-        digits.s1.attr('class', digit_to_name[now[4]]);
-        digits.s2.attr('class', digit_to_name[now[5]]);
-
-		var date = moment().format("YYYY年MM月DD日");
-		var week = weekday[moment().format('d')];
-		$(".date").html(date + ' ' + week);
-
-
-        // 每秒钟运行一次
-        setTimeout(update_time, 1000);
-
-    })();
-});
 </script>
 </body>
 </html>
