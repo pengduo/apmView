@@ -30,11 +30,12 @@
         var strMoniterGroupName = 'Applications Manager'; //当前的业务组名称
         //var strMoniterGroupName = 'ddd'; //当前的业务组名称
         var strResourceID = "10000012";
-       // var strResourceID = "10000127";
+        // var strResourceID = "10000127";
         //var apiKey = "cc4df73106c610d923d388fa9e00c043";//笔记本
         var apiKey = "ecd09e74b5afc6927364c5af4fde7dab";  //PC机
         var apmHost = "localhost";
         var apmPort = "9090";
+        var configFileData = varConfig;//导入配置文件
 
 
         $(document).ready(function () {
@@ -46,21 +47,42 @@
             showJTopoToobar(stage);
             scene.background = './img/bggrid.jpg';
 
-
             //线过程中的临时Link,需要两个临时的NODE，分别代表起点和终点
             var beginNode = null;
             var tempNodeA = new JTopo.Node('tempA');
             tempNodeA.setSize(1, 1);
             var tempNodeZ = new JTopo.Node('tempZ');
             tempNodeZ.setSize(1, 1);
-            var link = new JTopo.Link(tempNodeA, tempNodeZ);
-            link.arrowsRadius = 10;
+            var linkTemp = new JTopo.Link(tempNodeA, tempNodeZ);
+            linkTemp.arrowsRadius = 10;
+
+            /*返回的结果集为
+             {"NAME","RESOURCEID","DISPLAYNAME","DESCRIPTION"}
+             */
+            var vMgList = getApmMonitorgroupList(apmHost, apmPort, apiKey);
+
+            //用业务组填充下拉列表，并关联事件
+            var vMGSelect = document.getElementById('mglist');
+            for (var ii = 0; ii < vMgList.length; ii++) {
+                vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
+            }
+            ;
+            document.getElementById('mglist').addEventListener('change', function () {
+                var vCurrentMG = document.getElementById('mglist');
+                var index = vCurrentMG.selectedIndex; //序号，取当前选中选项的序号
+                strResourceID = vCurrentMG.options[index].value;
+                strMoniterGroupName = vCurrentMG.options[index].text;
+                var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+                initMGView(strMoniterGroupName, mgSelectIdx);
+            });
 
 
-            var data = varConfig;//导入配置文件
+            //初始为业务组中第一个
+            strMoniterGroupName = vMgList[0].NAME;
+            strResourceID = vMgList[0].RESOURCEID;
+
             //查找是否存在此业务组名称
-            var mgIdx = findElementIdx(data.monitorgroups, "name", strMoniterGroupName);
-            //if (mgIdx!=-1)
+            var mgIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
             initMGView(strMoniterGroupName, mgIdx);
 
 
@@ -77,18 +99,28 @@
              */
             function initMGView(mgName, mgIndex) {
 
+                scene.clear();
+
+                //线过程中的临时Link,需要两个临时的NODE，分别代表起点和终点
+                beginNode = null;
+                //var tempNodeA = new JTopo.Node('tempA');
+                //tempNodeA.setSize(1, 1);
+                //var tempNodeZ = new JTopo.Node('tempZ');
+                //tempNodeZ.setSize(1, 1);
+                //var link = new JTopo.Link(tempNodeA, tempNodeZ);
+                //link.arrowsRadius = 10;
+
                 vms = [];//当前MG的数据模型
-                //strMoniterGroupName
-                //var strMoniterGroupName = mgName;
                 var idx = mgIndex;
                 var countMonitors = 0;
 
                 if (idx != -1) {
+                    //beginNode = null;
                     //创建节点
-                    for (var ii = 0; ii < data.monitorgroups[idx].details.length; ii++) {
-                        var node = new JTopo.Node(data.monitorgroups[idx].details[ii].name);
-                        node.setLocation(data.monitorgroups[idx].details[ii].x, data.monitorgroups[idx].details[ii].y);
-                        node.setImage('./img/apm/icon_monitors_' + data.monitorgroups[idx].details[ii].type + '.png', false);
+                    for (var ii = 0; ii < configFileData.monitorgroups[idx].details.length; ii++) {
+                        var node = new JTopo.Node(configFileData.monitorgroups[idx].details[ii].name);
+                        node.setLocation(configFileData.monitorgroups[idx].details[ii].x, configFileData.monitorgroups[idx].details[ii].y);
+                        node.setImage('./img/apm/icon_monitors_' + configFileData.monitorgroups[idx].details[ii].type + '.png', false);
                         node.fontColor = "0,22,0";
                         node.shadow = true;  //增加阴影效果
                         scene.add(node);
@@ -96,11 +128,11 @@
                     }
 
                     //创建连线
-                    for (var jj = 0; jj < data.monitorgroups[idx].details.length; jj++) {
-                        var nodeTextFrom = data.monitorgroups[idx].details[jj].name;
+                    for (var jj = 0; jj < configFileData.monitorgroups[idx].details.length; jj++) {
+                        var nodeTextFrom = configFileData.monitorgroups[idx].details[jj].name;
                         var sourcenode = findNodeByText(nodeTextFrom);
-                        for (var jjj = 0; jjj < data.monitorgroups[idx].details[jj].rel.length; jjj++) {
-                            var destinationnode = findNodeByText(data.monitorgroups[idx].details[jj].rel[jjj]);
+                        for (var jjj = 0; jjj < configFileData.monitorgroups[idx].details[jj].rel.length; jjj++) {
+                            var destinationnode = findNodeByText(configFileData.monitorgroups[idx].details[jj].rel[jjj]);
                             var vlink = linkNode(sourcenode, destinationnode, false);
 
                             // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
@@ -109,142 +141,131 @@
 
                         }
                     }
-                    vms = data.monitorgroups[idx].details;
+                    vms = configFileData.monitorgroups[idx].details;
                     document.getElementById("myLabel").innerHTML = "编辑业务拓扑图-->" + mgName + "  (共" + countMonitors + "对象)";
                 }
                 else
                 //如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
                 {
                     beginNode = null;
-                    vms=[];
+                    vms = [];
                     //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
                     var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
                     $.ajaxSettings.async = false;
                     $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
-                                for (var n = 0; n < ApmAPIdata.response.result.length;n++) {
-                                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
-                                    if (ApmAPIdata.response.result[n].RESOURCEID==strResourceID) {
-                                        for (var i = 0; i < ApmAPIdata.response.result[n].Monitors.length; i++) {
-                                            var node = new JTopo.Node(ApmAPIdata.response.result[n].Monitors[i].NAME);
-                                            node.setLocation(Math.random() * 800, Math.random() * 600);
-                                            //约定好图片格式及位置，一定是TYPE类型包括在内
-                                            node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[n].Monitors[i].TYPE + '.png', false);
-                                            node.fontColor = "0,22,0";
-                                            node.shadow = true;  //增加阴影效果
-                                            scene.add(node);
+                        for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
+                            //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                            if (ApmAPIdata.response.result[n].RESOURCEID == strResourceID) {
+                                for (var i = 0; i < ApmAPIdata.response.result[n].Monitors.length; i++) {
+                                    var node = new JTopo.Node(ApmAPIdata.response.result[n].Monitors[i].NAME);
+                                    node.setLocation(Math.random() * 800, Math.random() * 600);
+                                    //约定好图片格式及位置，一定是TYPE类型包括在内
+                                    node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[n].Monitors[i].TYPE + '.png', false);
+                                    node.fontColor = "0,22,0";
+                                    node.shadow = true;  //增加阴影效果
+                                    scene.add(node);
 
-                                            //初始化变量
-                                            var v = {
-                                                "name": node.text,
-                                                "type": ApmAPIdata.response.result[n].Monitors[i].TYPE,
-                                                "x": node.x,
-                                                "y": node.y,
-                                                "rel": []
-                                            };
-                                            vms.push(v);
-                                            countMonitors++;
-                                        }
-                                    }
+                                    //初始化变量
+                                    var v = {
+                                        "name": node.text,
+                                        "type": ApmAPIdata.response.result[n].Monitors[i].TYPE,
+                                        "x": node.x,
+                                        "y": node.y,
+                                        "rel": []
+                                    };
+                                    vms.push(v);
+                                    countMonitors++;
                                 }
+                            }
+                        }
 
-                            });
+                    });
                     $.ajaxSettings.async = true;
                     document.getElementById("myLabel").innerHTML = "新建业务拓扑图-->" + strMoniterGroupName + "  (共" + countMonitors + "对象)";
 
                 }
-            }
-
-
-            //松开鼠标
-            scene.mouseup(function (e) {
-                //确认进入了连线模式！
-                if (isLinkMode == true) {
-                    //如果是右键，删除临时LINK
-                    if (e.button == 2) {
-                        scene.remove(link);
-                        return;
-                    }
-                    //如果是发生在NODE上的松开左键或者中间键动作
-                    if (e.target != null && e.target instanceof JTopo.Node) {
-                        //如果开始节点为空，即设定开始NODE，即连线的起点，并把临时LINK的开始和结束设置为这个起点
-                        if (beginNode == null) {
-                            beginNode = e.target;
-                            scene.add(link);
-                            tempNodeA.setLocation(e.x
-                                    , e.y);
-                            tempNodeZ.setLocation(e.x, e.y);
-                        } else if (beginNode !== e.
-                                        target) {
-                            //确认LINK的终点，只有当不是发生在LINK起点上时
-                            var
-                                    endNode = e.target
-                                    ;
-                            //配置此节点的连接终点
-
-                            //vm.rel = endNode.text;
-                            //如果数据模型中没有过此LINK信息，则添加，否则不添加
-                            if (
-                                updateVMSLinkData(beginNode.text, endNode.text)) {
-                                var l = linkNode(beginNode, endNode, false);
-                                // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
-                               // effect.addNode(endNode, beginNode);
-                               // effect.play();
-
-                                l.arrowsRadius = 10;
-                                scene.add(l);
-                                beginNode = null;
-                                scene.remove(link);
-                            }
-
-                        } else {
-                            beginNode =
-                                    null;
-                        }
-                    } else {
-                        scene.remove(link);
-                    }
-                    //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
-                    strJsonJTopo = JSON.stringify(stage.toJson
-                    ()).replace(/\\/g, "");
                 }
 
-            });
 
-            scene.mousedown(
-                    function (e) {
-                        //确认进入了连线模式！
-                        if (
-                                isLinkMode
-
-                                == true) {
-                            if (e.
-                                            target == null || e.target === beginNode || e.target === link) {
-                                scene.remove(link);
-                            }
-                            //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
-                            strJsonJTopo = JSON.stringify(stage.toJson()
-                            ).replace(/\\/g, "");
+                //松开鼠标
+                scene.mouseup(function (e) {
+                    //确认进入了连线模式！
+                    if (isLinkMode == true) {
+                        //如果是右键，删除临时LINK
+                        if (e.button == 2) {
+                            scene.remove(linkTemp);
+                            return;
                         }
-                    });
+                        //如果是发生在NODE上的松开左键或者中间键动作
+                        if (e.target != null && e.target instanceof JTopo.Node) {
+                            //如果开始节点为空，即设定开始NODE，即连线的起点，并把临时LINK的开始和结束设置为这个起点
+                            if (beginNode == null) {
+                                //alert("beginnode is Null");
+                                beginNode = e.target;
+                                scene.add(linkTemp);
+                                tempNodeA.setLocation(e.x, e.y);
+                                tempNodeZ.setLocation(e.x, e.y);
+                            } else if (beginNode !== e.target) {
+                                //确认LINK的终点，只有当不是发生在LINK起点上时
+                                var endNode = e.target;
+                                //配置此节点的连接终点
 
-            scene.mousemove(function
-                    (e) {
-                tempNodeZ.setLocation(e.x, e.y);
+                                //vm.rel = endNode.text;
+                                //如果数据模型中没有过此LINK信息，则添加，否则不添加
+                                if (updateVMSLinkData(beginNode.text, endNode.text)) {
+                                    var l = linkNode(beginNode, endNode, false);
+                                    // 效果作用对象(node节点以targetNode为目标，产生弹性效果)
+                                    // effect.addNode(endNode, beginNode);
+                                    // effect.play();
+
+                                    l.arrowsRadius = 10;
+                                    scene.add(l);
+                                    beginNode = null;
+                                    scene.remove(linkTemp);
+                                }
+
+                            } else {
+                                beginNode =null;
+                            }
+                        } else {
+                            scene.remove(linkTemp);
+                        }
+                        //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                        strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                    }
+
+                });
+
+                scene.mousedown(function (e) {
+                            //确认进入了连线模式！
+                            if (isLinkMode== true) {
+                                if (e.target == null || e.target === beginNode || e.target === linkTemp) {
+                                    scene.remove(linkTemp);
+                                }
+                                //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                                strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                            }
+                        });
+
+                scene.mousemove(function(e) {
+                    tempNodeZ.setLocation(e.x, e.y);
+                    //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
+                    strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                });
+
                 //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
-                strJsonJTopo = JSON.stringify(stage.toJson()).
+                strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
+                strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
 
-                        replace(/\\/g, "");
-            });
 
-            //先将JSON对象转成字符串，然后将其中的“\”符号全部替换成空格
-            strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
-            strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
+            //}
 
             //点击“重置配置”按钮事件
             document.getElementById("resetMGBtn").onclick = function () {
                 scene.clear();
                 initMGView(strMoniterGroupName, -1);
             };
+
 
             //点击“保存配置”按钮事件
             document.getElementById("myBtn").onclick = function () {
@@ -256,9 +277,15 @@
                 //更新节点位置信息
                 vms = updateVmDataXY(tempJson, vms);
                 var outVMS = {"name": strMoniterGroupName, "resourceid": strResourceID, "details": vms};
+                //更新此配置文件变量
+                //mgIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+                //configFileData.monitorgroups[mgIdx]=outVMS;
+
                 var outFile = createOutConfigFile(outVMS);
+                configFileData = outFile;
                 strJsonMonitors = JSON.stringify(outFile, null, 4);
                 document.getElementById("jsonstr2").innerHTML = "var varConfig = " + strJsonMonitors + ";";
+
             };
 
             function linkNode(nodeA, nodeZ, f) {
@@ -282,21 +309,21 @@
 
 
                 /*
-                link.addEventListener('mousedown', function (event) {
-                    if(event.button == 2){
-                        //s1.text = '按下右键';
-                        //最好用this来做输入参数
-                        deleteSelectedLink();
-                    }else if(event.button == 1){
-                        //s1.text = '按下中键';
-                    }else if(event.button == 0){
-                        //s1.text = '按下左键';
-                    }
-                });
-                */
+                 link.addEventListener('mousedown', function (event) {
+                 if(event.button == 2){
+                 //s1.text = '按下右键';
+                 //最好用this来做输入参数
+                 deleteSelectedLink();
+                 }else if(event.button == 1){
+                 //s1.text = '按下中键';
+                 }else if(event.button == 0){
+                 //s1.text = '按下左键';
+                 }
+                 });
+                 */
 
                 link.addEventListener('mouseover', function (event) {
-                    createTextNode('点击连线后按鼠标双击可以删除此连线！',2);
+                    createTextNode('点击连线后按鼠标双击可以删除此连线！', 2);
                 });
 
                 scene.add(link);
@@ -325,22 +352,22 @@
                     //删除缓存的数据；
                     for (var p = 0; p < vms.length; p++) {
                         if (vms[p].name == lkNode[0].nodeA.text) {
-                                    var delLinkEnd = lkNode[0].nodeZ.text;
-                                    //从数组中删除某一个元素，嵌套函数
-                                    vms[p].rel.splice($.inArray(delLinkEnd,vms[p].rel),1);
-                                    break;
-                            }
+                            var delLinkEnd = lkNode[0].nodeZ.text;
+                            //从数组中删除某一个元素，嵌套函数
+                            vms[p].rel.splice($.inArray(delLinkEnd, vms[p].rel), 1);
+                            break;
                         }
+                    }
                     scene.remove(lkNode[0]);
                 } else {
                     //console.log('-------------');
-                    createTextNode('请先选择连线，然后鼠标右键点击删除！',3);
+                    createTextNode('请先选择连线，然后鼠标双击删除！', 3);
                 }
             }
 
 
             //创建提示；
-            function createTextNode(text,sec) {
+            function createTextNode(text, sec) {
                 if (!scene) return false;
                 var msgNode = new JTopo.TextNode(text);
                 //msgNode.zIndex++;
@@ -348,7 +375,7 @@
                 msgNode.fontColor = "255,106,106";
                 msgNode.font = "14px Consolas";
                 scene.add(msgNode);
-                setTimeout(deleteTextNode(msgNode), sec*1000);
+                setTimeout(deleteTextNode(msgNode), sec * 1000);
             }
 
 
@@ -360,8 +387,31 @@
             }
 
 
-
         });
+
+        //从APM系统中获取所有业务组列表
+        function getApmMonitorgroupList(host, port, key) {
+            var mgList = new Array();
+            mgList = [];
+            //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMonitorGroups?apikey=" + key;
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
+                for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
+                    //初始化变量
+                    var v = {
+                        "NAME": ApmAPIdata.response.result[n].NAME,
+                        "RESOURCEID": ApmAPIdata.response.result[n].RESOURCEID,
+                        "DISPLAYNAME": ApmAPIdata.response.result[n].DISPLAYNAME,
+                        "DESCRIPTION": ApmAPIdata.response.result[n].DESCRIPTION,
+                    };
+                    mgList.push(v);
+                }
+
+            });
+            $.ajaxSettings.async = true;
+            return mgList;
+        }
 
         //从JSON对象数组中获取一个KEY的特定VALUE的第一个INDEX；
         function findElementIdx(jsonArrayToSearch, key, value) {
@@ -430,7 +480,7 @@
         }
 
         //在VMS数据模型中删除连线信息，即修改对应的REL
-        function deleteLinkDataFromVMS(A,Z){
+        function deleteLinkDataFromVMS(A, Z) {
             //createTextNode('进入删除LINK事件！',1);
             for (var p = 0; p < vms.length; p++) {
                 if (vms[p].name == A) {
@@ -471,6 +521,15 @@
         }
 
 
+        function changedMgSelected() {
+            var vCurrentMG = document.getElementById('mglist');
+            var index = vCurrentMG.selectedIndex; //序号，取当前选中选项的序号
+            strResourceID = vCurrentMG.options[index].value;
+            strMoniterGroupName = vCurrentMG.options[index].text;
+            var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+            initMGView(strMoniterGroupName, mgSelectIdx);
+        }
+
     </script>
 </head>
 
@@ -480,11 +539,14 @@
     <div id="content">
         <canvas width="1024" height="728" id="canvas"></canvas>
     </div>
-    <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR><BR>
+    <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR>
+    <select name="mglist" id="mglist" style='width:200px'>
+    </select>
     <button id="resetMGBtn">重置配置</button>
     <button id="myBtn">输出配置</button>
 </center>
 <p id="jsonstr1" style="font-size: small" width="800" height="600"></p>
+
 <p id="jsonstr2" style="font-size: small; background-color:rgb(245,245,245)" width="800" height="600"></p>
 </body>
 
