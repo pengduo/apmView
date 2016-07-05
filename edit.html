@@ -148,7 +148,7 @@
                 //如果遍历结束并没有找到此监视器组名称，从APM API新建业务视图，NODE位置随机
                 {
                     beginNode = null;
-                    vms = [];
+                    //vms = [];
                     //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
                     var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
                     $.ajaxSettings.async = false;
@@ -269,6 +269,7 @@
 
             //点击“保存配置”按钮事件
             document.getElementById("myBtn").onclick = function () {
+                strJsonJTopo ="";
                 strJsonJTopo = JSON.stringify(stage.toJson()).replace(/\\/g, "");
                 strJsonJTopo = strJsonJTopo.substring(1, strJsonJTopo.length - 1); //去掉首尾的双引号
 
@@ -281,9 +282,9 @@
                 //mgIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
                 //configFileData.monitorgroups[mgIdx]=outVMS;
 
-                var outFile = createOutConfigFile(outVMS);
-                configFileData = outFile;
-                strJsonMonitors = JSON.stringify(outFile, null, 4);
+                var outFile = createOutConfigFile(strMoniterGroupName,outVMS);
+                configFileData = createMemoryOutConfigFile(strMoniterGroupName,outVMS);
+                strJsonMonitors = JSON.stringify(configFileData, null, 4);
                 document.getElementById("jsonstr2").innerHTML = "var varConfig = " + strJsonMonitors + ";";
 
             };
@@ -445,7 +446,7 @@
         }
 
         //将当前业务组的拓扑信息新添加或者修改到到配置文件中
-        function createOutConfigFile(outVMS) {
+        function createOutConfigFile(currentMGName,outVMS) {
             //读取整个配置文件，然后修改相关部分，否则直接添加
             $.ajaxSettings.async = false;
             $.getJSON(mgconfigfile, function (outFileData) {
@@ -454,7 +455,7 @@
                 outFile.version = outFileData.version + 1;
                 var vFindMG = false;
                 for (var i = 0; i < outFileData.monitorgroups.length; i++) {
-                    if (outFileData.monitorgroups[i].name == strMoniterGroupName) {
+                    if (outFileData.monitorgroups[i].name == currentMGName) {
                         vFindMG = true;
                         outFile.monitorgroups[i] = outVMS;
                     }
@@ -464,6 +465,24 @@
             $.ajaxSettings.async = true;
             return outFile;
         }
+
+        //将当前业务组的拓扑信息新添加或者修改到到配置文件中
+        function createMemoryOutConfigFile(currentMGName,outVMS) {
+            //读取整个配置文件，然后修改相关部分，否则直接添加
+            //从当前配置文件的变量中获取变化之前的数量，注意已经不等同于原始配置文件了。
+            configFileData.datetime = getNowFormatDate();
+            configFileData.version = configFileData.version + 1;
+            var vFindMG = false;
+            for (var i = 0; i < configFileData.monitorgroups.length; i++) {
+                 if (configFileData.monitorgroups[i].name == currentMGName) {
+                     vFindMG = true;
+                     configFileData.monitorgroups[i] = outVMS;
+                    }
+                }
+                if (vFindMG == false)  configFileData.monitorgroups.push(outVMS);
+            return configFileData;
+        }
+
 
         //将当前NODE的位置信息更新到配置文件中
         function updateVmDataXY(tempJson1, vms) {
