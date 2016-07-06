@@ -2,9 +2,9 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Applications Manager.json" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/config/apm.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/config/topo.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/css/tabulator.css" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/js/apmconfig.js" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/js/config.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mgconfig.json" charset="UTF-8" />
   </component>
 </project>
