@@ -22,7 +22,7 @@
         };
 
         var isLinkMode = false;
-        var mgconfigfile = 'mgconfig.json';
+        //var mgconfigfile = '/config/topo.js';
         var isExistMG = ""; // 配置文件中是否存在此业务组
         var vms = new Array();//输出NODE和LINK配置文件的JSON对象
         var strJsonMonitors = "";//输出NODE和LINK配置文件
@@ -60,14 +60,20 @@
                 vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
             }
             ;
-            document.getElementById('mglist').addEventListener('change', function () {
-                var vCurrentMG = document.getElementById('mglist');
-                var index = vCurrentMG.selectedIndex; //序号，取当前选中选项的序号
-                strResourceID = vCurrentMG.options[index].value;
-                strMoniterGroupName = vCurrentMG.options[index].text;
+
+            $("#mglist").click(function(){
+
+                var vCurrentMG1 = document.getElementById('mglist');
+                var index = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
+                strResourceID = vCurrentMG1.options[index].value;
+                strMoniterGroupName = vCurrentMG1.options[index].text;
                 var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
                 initMGView(strMoniterGroupName, mgSelectIdx);
+
+                //window.location.href = $(this).find("option:selected").attr("id") + '.html';
             });
+
+//            document.getElementById('mglist').addEventListener('click', function () {
 
 
             //初始为业务组中第一个
@@ -275,7 +281,7 @@
                 //mgIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
                 //configFileData.monitorgroups[mgIdx]=outVMS;
 
-                var outFile = createOutConfigFile(strMoniterGroupName,outVMS);
+                //var outFile = createOutConfigFile(strMoniterGroupName,outVMS);
                 configFileData = createMemoryOutConfigFile(strMoniterGroupName,outVMS);
                 strJsonMonitors = JSON.stringify(configFileData, null, 4);
                 document.getElementById("jsonstr2").innerHTML = "var varConfig = " + strJsonMonitors + ";";
