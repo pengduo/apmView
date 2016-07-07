@@ -96,7 +96,7 @@
         var MaxMGCount=varConfig.monitorgroups.length;
         var CurrentMGIndex=0;
 
-        var isLinkMode = false;//是否轮播业务组
+        var isLinkMode = false;//是否轮播
 
         $(document).ready(function () {
 
@@ -156,6 +156,7 @@
                             CurrentMGIndex = CurrentMGIndex + 1;
                             return;
                         }else{
+                            //CurrentMGIndex = CurrentMGIndex - 1;
                             if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
                             var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
                             var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
