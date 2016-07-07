@@ -33,6 +33,9 @@
 
         $(document).ready(function () {
             canvas = document.getElementById('canvas');
+            canvas.height = document.body.clientHeight*0.65;
+            canvas.width = document.body.clientWidth*0.95;
+
             stage = new JTopo.Stage(canvas);
             scene = new JTopo.Scene(stage);
             stage.add(scene);
@@ -323,7 +326,7 @@
                  */
 
                 link.addEventListener('mouseover', function (event) {
-                    createTextNode('点击连线后按鼠标双击可以删除此连线！', 2);
+                  //  createTextNode('点击连线后按鼠标双击可以删除此连线！', 2);
                 });
 
                 scene.add(link);
@@ -555,16 +558,15 @@
 
 <center>
     <div id="content">
-        <canvas width="1024" height="728" id="canvas"></canvas>
+        <canvas id="canvas" style="width: 98%;height: 60%"></canvas>
     </div>
-    <label id="myLabel" style="font-size:110%; background-color:rgb(245,245,245)">...</label><BR>
+    <label id="myLabel" style="font-size:100%; background-color:rgb(245,245,245)">...</label><BR>
     <select name="mglist" id="mglist" style='width:200px'>
     </select>
     <button id="resetMGBtn">重置配置</button>
     <button id="myBtn">输出配置</button>
 </center>
 <p id="jsonstr1" style="font-size: small" width="800" height="600"></p>
-
 <p id="jsonstr2" style="font-size: small; background-color:rgb(245,245,245)" width="800" height="600"></p>
 </body>
 

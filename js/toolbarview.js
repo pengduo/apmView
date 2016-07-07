@@ -1,7 +1,9 @@
 // 页面工具栏
 
 function showJTopoToobar(stage) {
-    var toobarDiv = $('<div class="jtopo_toolbar">').html(''
+    /*
+    var toobarDiv = $('<div class="jtopo_toolbar" style="width:99%">').html(''
+        +'<fieldset id="mgTitle" style="color:#DCDCDC"><legend id="mgTileLegend" style="font-size: 18px;font-weight:bold">业务组</legend>'
         + '<input type="radio" name="modeRadio" value="normal" checked id="r1"/>'
         + '<label for="r1" style="color: #fdfdfd"> 默认</label>'
         + '&nbsp;<input type="radio" name="modeRadio" value="select" id="r2" checked/><label for="r2" style="color: #fdfdfd"> 框选</label>'
@@ -15,9 +17,14 @@ function showJTopoToobar(stage) {
         + '&nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox"  style="color: #fdfdfd">固定视图</label>'
         + '&nbsp;&nbsp;<input type="text" id="findText" value="" onkeydown="findButton.click()">'
         + '<input type="button" id="findButton" value=" 查 询 ">'
-        + '&nbsp;&nbsp;<input type="button" id="exportButton" value="导出PNG">');
+        + '&nbsp;&nbsp;<input type="button" id="exportButton" value="导出PNG">'
+        + '</fieldset>');
+    $('#content1').prepend(toobarDiv);
+    */
 
-    $('#content').prepend(toobarDiv);
+    //$('#mgTileLegend').title="ddd";
+    //document.getElementById('mgTileLegend').text="ddd";
+
 
     // 工具栏按钮处理
     $("input[name='modeRadio']").click(function () {

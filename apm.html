@@ -6,10 +6,12 @@
 
     <style>
         body {
-            width: 1024px;
-            height: 100%;
+
+
             margin: 0 auto;
             background-color: #171717;
+            alignment: center;
+            border:1px solid #4d4d4d;
         }
 
         #showAlarm {
@@ -101,10 +103,14 @@
         $(document).ready(function () {
 
                     canvas = document.getElementById('canvas');
+                    canvas.height = document.body.clientHeight*0.65;
+                    canvas.width = document.body.clientWidth*0.95;
+                    //canvas.width = $("#canvas").parent().width() - 1;
+                    //canvas.height = $("#canvas").parent().height() - 1;
                     stage = new JTopo.Stage(canvas);
                     stage.frames = 24;
                     //stage.eagleEye.visible = true;
-                    showJTopoToobar(stage);
+                    //showJTopoToobar(stage);
                     scene = new JTopo.Scene();
                     //scene.background = './img/bgblackview.jpg';
                     //scene.background = './img/bg.jpg';
@@ -127,6 +133,9 @@
                     */
 
 
+                    //$('#content1').prepend(toobarDiv);
+                    showJTopoToobar(stage);
+
                     $("#showAlarm").hide();
                     stage.click(function (event) {
                         if (event.button == 0) {// 右键
@@ -139,6 +148,7 @@
                     strMoniterGroupName = varConfig.monitorgroups[CurrentMGIndex].name;
                     showMGView(strMoniterGroupName,CurrentMGIndex);
                     CurrentMGIndex=CurrentMGIndex+1;
+                    //document.getElementById("mgTileLegend").innerText="ddd";
 
                     //定期刷新状态
                     $(function () {
@@ -154,6 +164,7 @@
                             var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
                             showMGView(showMGName, showMGidx);
                             CurrentMGIndex = CurrentMGIndex + 1;
+
                             return;
                         }else{
                             //CurrentMGIndex = CurrentMGIndex - 1;
@@ -178,6 +189,13 @@
                         vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
                         vms = MergeVMS(vmsF, vmsA);
                         createView(vms);
+
+                        //                        alert($('#mgTitleLegend').title);
+                       // $('#mgTitleLegend').innerText="业务组["+showMGViewName+"]运行情况";
+                      //  alert(document.getElementById("alarmLegend").innerText);
+                      //  document.getElementById("alarmLegend").innerText="ddd";
+                        //document.getElementById("mgTitleLegend").innerText="ddd";
+
 
 
                         //创建对象列表信息
@@ -204,7 +222,7 @@
                         }
                         showTable();
 
-                        apcNode = availabilityPeiChartNode(varConfig.monitorgroups[mgIdx].resourceid, 830, 30);
+                        apcNode = availabilityPeiChartNode(curResourceID, $("#canvas").width()-232, 22);
 
                         scene.add(apcNode);
                         stage.add(scene);
@@ -250,7 +268,7 @@
                             });
                         }
 
-                        apcNode = availabilityPeiChartNode(strResourceID, 830, 30);
+                        apcNode = availabilityPeiChartNode(strResourceID, document.body.clientWidth-100, 30);
 
                         scene.add(apcNode);
                         stage.add(scene);
@@ -528,7 +546,8 @@
                         msgNode.setBound(1,40);
                         msgNode.fontColor = "239,239,239";
                         msgNode.font = "20px Consolas";
-                        scene.add(msgNode);
+                        document.getElementById("mgTileLegend").innerText="> 业务组  ["+mg.DISPLAYNAME+"]  运行情况 <";
+                        //alert(mg.DISPLAYNAME);
 
 
                         //显示当前时间，将来可以改成动态变化的
@@ -559,7 +578,7 @@
                         var now = new Date();
                         var nowStr = now.format("yyyy-MM-dd hh:mm:ss");
                         var ClockNode= new JTopo.TextNode(""+nowStr);
-                        ClockNode.setBound(1,468);
+                        ClockNode.setBound(1,$("#canvas").height()-20);
                         ClockNode.fontColor = "239,239,239";
                         ClockNode.font = "18px Consolas";
                         scene.add(ClockNode);
@@ -570,7 +589,7 @@
 
                         var node = new JTopo.PieChartNode();
                         node.shadow = true;
-                        node.radius = 50;
+                        node.radius = 40;
                         node.colors = ["#33CC33", "#FF0033"];
                         //node.colors = ["green", "red"];
                         node.datas = [percent * 0.01, (100 - percent) * 0.01];
@@ -689,25 +708,24 @@
 
                         //
                         $("#example-table-filters").tabulator({
-                            height: "180px",
+                            height: "120px",
                             fitColumns: true,
-                            //pagination: true,
+                            pagination: true,
                             tooltips: true,
 
                             //columnLayoutCookie: true,
                             //paginationSize: 4,
                             columns: [
-                                {title: "监视器名称", field: "name", width: 200, sorter: "string"},
-                                {title: "类型", field: "type", width: 100, sorter: "string"},
-                                {title: "状态", field: "status", width: 66, align: "center", formatter: "tickCross"},
-                                {title: "消息", field: "message", align: "left", width: 360},
-                                {title: "时间", field: "datetime", align: "center", width: 170},
+                                {title: "监视器名称", field: "name", sorter: "string"},
+                                {title: "类型", field: "type", sorter: "string"},
+                                {title: "状态", field: "status", align: "center", formatter: "tickCross"},
+                                {title: "消息", field: "message", align: "left"},
+                                {title: "时间", field: "datetime", align: "center"},
                                 {
                                     title: "可用性",
                                     field: "availability",
                                     formatter: "progress",
-                                    width: 120,
-                                    height: 20,
+                                    height: 10,
                                     sorter: "number",
                                     onClick: function (e, cell, val, data) {
                                         //alert("cell clicked - " + val)
@@ -986,7 +1004,7 @@
 <body>
 <style type="text/css">
     body {
-        padding: 20px 40px;
+
         font-family: 'Montserrat', sans-serif !important;
     }
 
@@ -1037,13 +1055,31 @@
 <center>
 
     <div id="content1">
-        <div id="content">
-            <canvas width="1024" height="500" id="canvas"></canvas>
+        <div class="jtopo_toolbar" style="width:99%">
+            <fieldset id="mgTitle" style="color:#DCDCDC;border-width: 1px; border-color: #7a7a7a;height:50px"><legend id="mgTileLegend" style="font-size: 20px;font-weight:bold" align="center">业务组</legend>
+                <input type="radio" name="modeRadio" value="normal" checked id="r1"/>
+                <label for="r1" style="color: #fdfdfd"> 默认</label>
+                &nbsp;<input type="radio" name="modeRadio" value="select" id="r2" checked/><label for="r2" style="color: #fdfdfd"> 框选</label>
+                &nbsp;<input type="radio" name="modeRadio" value="drag" id="r3"/><label for="r3" style="color: #fdfdfd"> 平移</label>
+                &nbsp;<input type="radio" name="modeRadio" value="edit" id="r4"/><label for="r4" style="color: #fdfdfd"> 编辑</label>
+                &nbsp;&nbsp;<input type="button" id="centerButton" value="居中显示"/>
+                <input type="button" id="fullScreenButton" value="全屏显示"/>
+                <input type="button" id="zoomOutButton" value=" 放 大 " />
+                <input type="button" id="zoomInButton" value=" 缩 小 " />
+                &nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox"  style="color: #fdfdfd">固定视图</label>
+                &nbsp;&nbsp;<input type="text" id="findText" value="" onkeydown="findButton.click()">
+                <input type="button" id="findButton" value=" 查 询 ">
+                &nbsp;&nbsp;<input type="button" id="exportButton" value="导出PNG">
+            </fieldset>
         </div>
-        <div id="example-table-filters"></div>
+        <div id="content">
+            <canvas id="canvas" style="width: 98%;height: 60%"></canvas>
+        </div>
 
-        <fieldset>
-            <legend style="color: #fdfdfd">告警筛选：</legend>
+        <div id="filterDiv" style="width: 99.2%">
+
+        <fieldset style="color:#DCDCDC;border-width: 1px; border-color: #7a7a7a;height:30px">
+            <legend style="color: #fdfdfd;height:10px">告警筛选：</legend>
             <label style="color: #fdfdfd">字段: </label>
             <select id="filter-field">
                 <option></option>
@@ -1074,8 +1110,8 @@
             <input id="filter-clear" type="button" value="清除筛选条件" style="margin-left:40px;">
 
         </fieldset>
-
-
+       </div>
+        <div id="example-table-filters" style="width: 99%;height: 30%"></div>
         <script type="text/javascript">
 
             //<div id="clock_beijing"></div>
