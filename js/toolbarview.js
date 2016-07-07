@@ -1,4 +1,5 @@
 // 页面工具栏
+
 function showJTopoToobar(stage) {
     var toobarDiv = $('<div class="jtopo_toolbar">').html(''
         + '<input type="radio" name="modeRadio" value="normal" checked id="r1"/>'
@@ -10,8 +11,8 @@ function showJTopoToobar(stage) {
         + '<input type="button" id="fullScreenButton" value="全屏显示"/>'
         + '<input type="button" id="zoomOutButton" value=" 放 大 " />'
         + '<input type="button" id="zoomInButton" value=" 缩 小 " />'
-        + '&nbsp;&nbsp;<input type="checkbox" id="zoomCheckbox"/><label for="zoomCheckbox" style="color: #fdfdfd">鼠标缩放</label>'
-        //+ '&nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox">连线模式</label>'
+        //+ '&nbsp;&nbsp;<input type="checkbox" id="zoomCheckbox"/><label for="zoomCheckbox" style="color: #fdfdfd">鼠标缩放</label>'
+        + '&nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox"  style="color: #fdfdfd">固定视图</label>'
         + '&nbsp;&nbsp;<input type="text" id="findText" value="" onkeydown="findButton.click()">'
         + '<input type="button" id="findButton" value=" 查 询 ">'
         + '&nbsp;&nbsp;<input type="button" id="exportButton" value="导出PNG">');
@@ -37,10 +38,24 @@ function showJTopoToobar(stage) {
     $('#zoomCheckbox').click(function () {
         if ($('#zoomCheckbox').attr('checked')) {
             stage.wheelZoom = 0.85; // 设置鼠标缩放比例
+           // loopSlide=true;
         } else {
             stage.wheelZoom = null; // 取消鼠标缩放比例
+            //loopSlide=false;
         }
+
     });
+
+    $('#linkCheckbox').click(function () {
+        //if ($('#linkCheckbox').attr('checked')) {
+        if (this.checked){
+            isLinkMode = true; // 设置连线模式
+        } else {
+            isLinkMode = false; // 取消连线模式
+        }
+        //alert(isLinkMode);
+    });
+
     $('#fullScreenButton').click(function () {
         runPrefixMethod(stage.canvas, "RequestFullScreen")
     });

@@ -96,6 +96,8 @@
         var MaxMGCount=varConfig.monitorgroups.length;
         var CurrentMGIndex=0;
 
+        var isLinkMode = false;//是否轮播业务组
+
         $(document).ready(function () {
 
                     canvas = document.getElementById('canvas');
@@ -140,16 +142,25 @@
 
                     //定期刷新状态
                     $(function () {
-                        setInterval(re, 5000);
+                        setInterval(re, 3000);
                     });
 
                     function re() {
-                            if (CurrentMGIndex==MaxMGCount) CurrentMGIndex=0;
-                            var  showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
-                            var  showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
+                        //alert("loop"+loopSlide);
+                        //loopSlide=true;
+                        if (isLinkMode==false) {
+                            if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
+                            var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
+                            var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
                             showMGView(showMGName, showMGidx);
-                            CurrentMGIndex=CurrentMGIndex+1;
+                            CurrentMGIndex = CurrentMGIndex + 1;
                             return;
+                        }else{
+                            if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
+                            var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
+                            var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
+                            showMGView(showMGName, showMGidx);
+                        }
                     }
 
                     //setInterval("refreshMGView(strMoniterGroupName,idx);", 10000); //指定1秒刷新一次

@@ -47,6 +47,7 @@ function showJTopoToobar(stage) {
         } else {
             isLinkMode = false; // 取消连线模式
         }
+       // alert(isLinkMode);
     });
 
     $('#fullScreenButton').click(function () {
