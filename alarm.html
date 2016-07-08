@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>应用系统告警展示 v1.0</title>
+
+    <style>
+        body {
+
+
+            margin: 0 auto;
+            background-color: #171717;
+            alignment: center;
+            border:1px solid #4d4d4d;
+        }
+
+        #showAlarm {
+            border: 1px solid #aaa;
+            border-bottom: 0;
+            background: #eee;
+            position: absolute;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+
+        #showAlarm li a {
+            display: block;
+            padding: 7px;
+            border-bottom: 1px solid #aaa;
+            cursor: pointer;
+            width: 88px;
+        }
+
+        #showAlarm li a:hover {
+            background: #fff;
+        }
+
+        .demo {
+            color: rgb(0, 0, 255);
+            font-size: small;
+            border: 1px;
+            background-color: gray;
+            height: 100px;
+            position: relative;
+            width: 350px;
+        }
+
+        .demo:after {
+            content: '';
+            position: absolute;
+            border: 10px solid transparent;
+            border-top-color: gray;
+            top: 100%;
+            left: 10px;
+        }
+
+        div.clockdemo{border:1px solid #CCC;background:red;position:fixed;height:100px;width:100px;z-index:100000;left:100px;top:100px;	}
+
+
+    </style>
+
+    <link href="css/animate.min.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/json2.js"></script>
+    <script type="text/javascript" src="config/topo.js"></script>
+    <script type="text/javascript" src="config/apm.js"></script>
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link href='css/google.css.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/tabulator.css">
+    <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="js/tabulator.js"></script>
+    <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+    <script type="text/javascript" src="js/jquery.rotate.js"></script>
+
+
+    <script id='code'>
+
+        var rawAlarm = new Array();
+        var tabledata= new Array();
+
+        $(document).ready(function () {
+
+                    //http://localhost:9090/AppManager/json/ListAlarms?apikey=ecd09e74b5afc6927364c5af4fde7dab&type=all
+
+                    /*返回的结果集为
+                     {"NAME","RESOURCEID","DISPLAYNAME","DESCRIPTION"}
+                     */
+                    var vMgList = getApmMonitorgroupList(apmHost, apmPort, apiKey);
+                    MaxMGCount=vMgList.length;
+                    //用业务组填充下拉列表，并关联事件
+                    var vMGSelect = document.getElementById('mglist');
+                    for (var ii = 0; ii < vMgList.length; ii++) {
+                        vMGSelect.options.add(new Option(vMgList[ii].DISPLAYNAME, vMgList[ii].RESOURCEID));
+                    }
+                    ;
+
+                    $("#mglist").click(function(){
+                        var vCurrentMG1 = document.getElementById('mglist');
+                        var selIndex = 0; //序号，取当前选中选项的序号
+                        selIndex = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
+                        strResourceID = vCurrentMG1.options[selIndex].value;
+                        strMoniterGroupName = vMgList[selIndex].NAME;//取业务组数组中的索引对应的业务组名称，而非显示名称
+                        //var mgSelectIdx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
+                        showMGView(strMoniterGroupName, selIndex);
+                        CurrentMGIndex=selIndex;
+                        if (isLinkMode==true) {
+                            //CurrentMGIndex = CurrentMGIndeIx + 1;
+                        }
+                        return;
+                    });
+
+                    $("#showAlarm").hide();
+                    stage.click(function (event) {
+                        if (event.button == 0) {// 右键
+                            // 关闭弹出菜单（div）
+                            $("#showAlarm").hide();
+                        }
+                    });
+
+
+                    //定期刷新状态
+                    $(function () {
+                        setInterval(re, 5000);
+                    });
+
+                    function re() {
+                        var currentSelectedMGidx = findElementIdx(vMgList, "NAME", showMGName);
+                        document.getElementById("mglist").options[currentSelectedMGidx].selected = true;
+
+                        return;
+                    }
+
+                    //setInterval("refreshMGView(strMoniterGroupName,idx);", 10000); //指定1秒刷新一次
+                    //do while
+
+                    /*从APM系统中获取所有告警
+                     {
+                     "FORMATTEDDATE": "七月 6 03:19 下午",
+                     "DISPLAYNAME": "My App4",
+                     "MODTIME": "1467789598287",
+                     "AVAILABILITYSEVERITY": "5",
+                     "ATTRIBUTEID": "18",
+                     "TECHNICIAN": "None",
+                     "STATUS": "clear",
+                     "MESSAGE": "My App4的健康状况为正常. <br>根本原因 <br>健康状态为正常",
+                     "ANNOTATION": "YES",
+                     "IMAGEPATH": "/images/icon_monitors_app.gif",
+                     "RESOURCEID": "10000122",
+                     "TYPE": "HAI",
+                     "DetailsPageURL": "/showapplication.do?method=showApplication&haid=10000122&PRINTER_FRIENDLY=true",
+                     "TYPEDISPLAYNAME": "Monitor Group",
+                     "SHORTMESSAGE": "健康状态为正常",
+                     "HEALTHSEVERITY": "5"
+                     }
+                     */
+
+
+                    function showAlarmTable() {
+                        //创建对象列表信息
+                        var vms = new Array(); //确保清除了数组
+                        vms = getApmAlarmData(apmHost, apmPort, apiKey);
+
+                        for (var i = 0; i < vms.length; i++) {
+
+                            var vstatus = (vms[i].HEALTHSEVERITY == "5") ? "true" : "false";
+
+                            var unixtime = vms[i].MODTIME * 1;
+                            var unixTimestamp = new Date(unixtime);
+                            var commonTime = unixTimestamp.toLocaleString();
+
+                            var messageOrig = vms[i].HEALTHMESSAGE;
+                            var messageArray = messageOrig.split("<br>");
+                            var message = messageArray[0];
+                            var messageAll = messageArray.join("   ");
+                            tabledata.push({
+                                "FORMATTEDDATE": "七月 6 03:19 下午",
+                                "DISPLAYNAME": "My App4",
+                                "MODTIME": commonTime,
+                                "AVAILABILITYSEVERITY": "5",
+                                "ATTRIBUTEID": "18",
+                                "TECHNICIAN": "None",
+                                "STATUS": "clear",
+                                "MESSAGE": "My App4的健康状况为正常. <br>根本原因 <br>健康状态为正常",
+                                "ANNOTATION": "YES",
+                                "IMAGEPATH": "/images/icon_monitors_app.gif",
+                                "RESOURCEID": "10000122",
+                                "TYPE": "HAI",
+                                "DetailsPageURL": "/showapplication.do?method=showApplication&haid=10000122&PRINTER_FRIENDLY=true",
+                                "TYPEDISPLAYNAME": "Monitor Group",
+                                "SHORTMESSAGE": "健康状态为正常",
+                                "HEALTHSEVERITY": "5"
+                            });
+                        }
+                        showTable();
+
+                    }
+
+
+
+                    /*获取当前日期期间串
+                     输出：日期字符串
+                     */
+
+                    function getDataString() {
+
+                        //获取监视器组信息
+                        var mg = {};
+                        mg=getMGSumInfoFromAPM(apmHost, apmPort, apiKey, MGID);
+
+
+
+                        //显示当前时间，将来可以改成动态变化的
+                        Date.prototype.format = function(format){
+                            var o = {
+                                "M+" : this.getMonth()+1, //month
+                                "d+" : this.getDate(), //day
+                                "h+" : this.getHours(), //hour
+                                "m+" : this.getMinutes(), //minute
+                                "s+" : this.getSeconds(), //second
+                                "q+" : Math.floor((this.getMonth()+3)/3), //quarter
+                                "S" : this.getMilliseconds() //millisecond
+                            };
+
+                            if(/(y+)/.test(format)) {
+                                format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+                            };
+
+                            for(var k in o) {
+                                if(new RegExp("("+ k +")").test(format)) {
+                                    format = format.replace(RegExp.$1, RegExp.$1.length==1 ? o[k] : ("00"+ o[k]).substr((""+ o[k]).length));
+                                };
+                            };
+                            return format;
+                        }
+
+                       //使用方法
+                        var now = new Date();
+                        var nowStr = now.format("yyyy-MM-dd hh:mm:ss");
+
+
+                        return nowStr;
+
+                    }
+
+
+
+                    function customFilter(data) {
+                        return data.cheese && data.height < 3;
+                    }
+
+                    function updateFilter() {
+
+                        var filter = $("#filter-field").val() == "function" ? customFilter : $("#filter-field").val();
+
+                        if ($("#filter-field").val() == "function") {
+                            $("#filter-type").prop("disabled", true);
+                            $("#filter-value").prop("disabled", true);
+                        } else {
+                            $("#filter-type").prop("disabled", false);
+                            $("#filter-value").prop("disabled", false);
+                        }
+
+                        $("#example-table-filters").tabulator("setFilter", filter, $("#filter-type").val(), $("#filter-value").val());
+                    }
+
+                    //showTable();
+                    function showTable() {
+                        $("#filter-field, #filter-type").change(updateFilter);
+                        $("#filter-value").keyup(updateFilter);
+
+                        $("#filter-clear").click(function () {
+                            $("#filter-field").val("");
+                            $("#filter-type").val("=");
+                            $("#filter-value").val("");
+
+                            $("#example-table-filters").tabulator("clearFilter");
+                        });
+
+                        //
+                        $("#example-table-filters").tabulator({
+                            height: "120px",
+                            fitColumns: true,
+                            pagination: true,
+                            tooltips: true,
+
+                            //columnLayoutCookie: true,
+                            //paginationSize: 4,
+                            columns: [
+                                {title: "监视器名称", field: "name", sorter: "string"},
+                                {title: "类型", field: "type", sorter: "string"},
+                                {title: "状态", field: "status", align: "center", formatter: "tickCross"},
+                                {title: "消息", field: "message", align: "left"},
+                                {title: "时间", field: "datetime", align: "center"},
+                                {
+                                    title: "可用性",
+                                    field: "availability",
+                                    formatter: "progress",
+                                    height: 10,
+                                    sorter: "number",
+                                    onClick: function (e, cell, val, data) {
+                                        //alert("cell clicked - " + val)
+                                    }
+                                }
+
+                            ],
+                            rowClick: function (e, id, data, row) {
+                                //alert("Row " + id + " Clicked!!!!")
+                            },
+                            rowContext: function (e, id, data, row) {
+                                //alert("Row " + id + " Context Clicked!!!!")
+                            },
+
+                        });
+
+                        $("#example-table-filters").tabulator("setData", tabledata);
+                        $("#example-table-filters").tabulator("setPage", 1);
+                        $("#example-table-filters").tabulator("sort", "status", "asc");
+                        $("#example-table-filters").tabulator({
+                            tooltips: function (field, value, data) {
+                                //field - field name of the cell's column
+                                //value - value of the cell
+                                //data - data for the cell's row
+                                switch (field) {
+                                    case "message":
+                                        return "【详细告警信息】" + data.messageAll;
+                                        break;
+                                    case "status":
+                                        if (value == true) {
+                                            return "对象运行正常"
+                                        } else {
+                                            return "对象出现故障"
+                                        }
+                                        ;
+                                        break;
+                                    case "availability":
+                                        return "可用性为" + value + "%";
+                                        break;
+                                    default:
+                                        return value;
+                                        break;
+                                }
+                            }
+                        });
+
+                        $(window).resize(function () {
+                            $("#example-table-filters").tabulator("redraw");
+                        });
+
+                    }
+                }
+        )
+        ;
+
+
+
+        //根据资源ID从GetMonitorData的接口中获取响应时间，一般是最后一个属性项
+        function getMOReponseTime(iapmHost, iapmPort, iapiKey, iresourceID) {
+            //vGetMonitorDataURL = "http://localhost:9090/AppManager/json/GetMonitorData?apikey=ecd09e74b5afc6927364c5af4fde7dab&resourceid=" + resourceID;
+            vGetMonitorDataURL = "http://" + iapmHost + ":" + iapmPort + "/AppManager/json/GetMonitorData?apikey=" + iapiKey + "&resourceid=" + iresourceID;
+            var MOReponseTime = "";
+            $.ajaxSettings.async = false;
+            $.getJSON(vGetMonitorDataURL, function (getMonitorData) {
+
+                //应用性能透视的没有响应时间一说，就取平均响应时间值，位置不一样
+                if (getMonitorData.response.result[0].TYPE == "APM-Insight-Instance") {
+                    MOReponseTime = getMonitorData.response.result[0].Attribute[0].Value + getMonitorData.response.result[0].Attribute[0].Units;
+                } else {
+                    var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
+                    MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+                }
+            });
+            $.ajaxSettings.async = true;
+            return MOReponseTime;
+
+        }
+
+
+        function sortByKey(array, key) {
+            return array.sort(function (a, b) {
+                var x = a[key];
+                var y = b[key];
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            });
+        }
+
+        /*根据配置文件名称和监视器组名称，从配置文件中获取此监视器组的各监视器列表，示范如下
+         [{
+         "name": "169.254.165.8",
+         "type": "Port-Test",
+         "x": 229.92133633136152,
+         "y": 551.7411847165355,
+         "rel": []
+         },
+         {....}
+         ]
+         */
+        function getMGInfoFromConfigFile(mgconfigfile, strMoniterGroupName) {
+            var vms1 = new Array();
+            var mgFileData = new Array();
+            var mgname = strMoniterGroupName;
+
+            $.ajaxSettings.async = false;
+            $.getJSON(mgconfigfile, function (getMGInfoFromConfigFiledata) {
+
+                mgFileData = getMGInfoFromConfigFiledata;
+
+                for (var i = 0; i < mgFileData.monitorgroups.length; i++) {
+                    if (mgFileData.monitorgroups[i].name == mgname) {
+                        vms1 = mgFileData.monitorgroups[i].details;
+                    }
+                }
+            });
+            $.ajaxSettings.async = true;
+            return vms1;
+
+        }
+
+        /*根据监视器组ID，获取此监视器组的概要信息，示范如下
+         "TODAYAVAILPERCENT":data.response.result[0].TODAYAVAILPERCENT, 当天可用性
+         "HEALTHSEVERITY":data.response.result[0].HEALTHSEVERITY,    健康状态
+         "AVAILABILITYMESSAGE":data.response.result[0].AVAILABILITYMESSAGE,    可用消息
+         "AvailabilityRCAURL":data.response.result[0].AvailabilityRCAURL      可用性链接
+         HEALTHSEVERITY
+         };
+
+         */
+        function getMGSumInfoFromAPM(host, port, key, GroupResourceID) {
+            var MGSum = {};
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vmsAPI = new Array();
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (data) {
+                for (var n = 0; n < data.response.result.length; n++) {
+                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                    if (data.response.result[n].RESOURCEID == GroupResourceID) {
+                        MGSum = {
+                            "NAME":data.response.result[n].NAME,
+                            "DISPLAYNAME":data.response.result[n].DISPLAYNAME,
+                            "TODAYAVAILPERCENT": data.response.result[n].TODAYAVAILPERCENT,
+                            "HEALTHSEVERITY": data.response.result[n].HEALTHSEVERITY,
+                            "AVAILABILITYMESSAGE": data.response.result[n].AVAILABILITYMESSAGE,
+                            "AvailabilityRCAURL": data.response.result[n].AvailabilityRCAURL,
+                            "HEALTHSEVERITY": data.response.result[n].HEALTHSEVERITY
+                        };
+                        $.ajaxSettings.async = true;
+                        return MGSum;
+                    }
+                }
+            });
+            $.ajaxSettings.async = true;
+            return MGSum;
+        }
+
+        //从APM系统中获取所有业务组列表
+        function getApmMonitorgroupList(host, port, key) {
+            var mgList = new Array();
+            mgList = [];
+            //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMonitorGroups?apikey=" + key;
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
+                for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
+                    //初始化变量
+                    var v = {
+                        "NAME": ApmAPIdata.response.result[n].NAME,
+                        "RESOURCEID": ApmAPIdata.response.result[n].RESOURCEID,
+                        "DISPLAYNAME": ApmAPIdata.response.result[n].DISPLAYNAME,
+                        "DESCRIPTION": ApmAPIdata.response.result[n].DESCRIPTION,
+                    };
+                    mgList.push(v);
+                }
+
+            });
+            $.ajaxSettings.async = true;
+            return mgList;
+        }
+
+
+        /*从APM系统中获取所有告警
+        {
+                "FORMATTEDDATE": "七月 6 03:19 下午",
+                "DISPLAYNAME": "My App4",
+                "MODTIME": "1467789598287",
+                "AVAILABILITYSEVERITY": "5",
+                "ATTRIBUTEID": "18",
+                "TECHNICIAN": "None",
+                "STATUS": "clear",
+                "MESSAGE": "My App4的健康状况为正常. <br>根本原因 <br>健康状态为正常",
+                "ANNOTATION": "YES",
+                "IMAGEPATH": "/images/icon_monitors_app.gif",
+                "RESOURCEID": "10000122",
+                "TYPE": "HAI",
+                "DetailsPageURL": "/showapplication.do?method=showApplication&haid=10000122&PRINTER_FRIENDLY=true",
+                "TYPEDISPLAYNAME": "Monitor Group",
+                "SHORTMESSAGE": "健康状态为正常",
+                "HEALTHSEVERITY": "5"
+        }
+        */
+
+
+        function getApmAlarmData(host, port, key) {
+            var mgList = new Array();
+            mgList = [];
+
+            //http://localhost:9090/AppManager/json/ListAlarms?apikey=ecd09e74b5afc6927364c5af4fde7dab&type=all
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/?apikey=" + key+"&type=all";
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
+
+                //for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
+                    /*初始化变量
+                    var v = {
+                        "FORMATTEDDATE": "七月 6 03:19 下午",
+                            "DISPLAYNAME": "My App4",
+                            "MODTIME": "1467789598287",
+                            "AVAILABILITYSEVERITY": "5",
+                            "ATTRIBUTEID": "18",
+                            "TECHNICIAN": "None",
+                            "STATUS": "clear",
+                            "MESSAGE": "My App4的健康状况为正常. <br>根本原因 <br>健康状态为正常",
+                            "ANNOTATION": "YES",
+                            "IMAGEPATH": "/images/icon_monitors_app.gif",
+                            "RESOURCEID": "10000122",
+                            "TYPE": "HAI",
+                            "DetailsPageURL": "/showapplication.do?method=showApplication&haid=10000122&PRINTER_FRIENDLY=true",
+                            "TYPEDISPLAYNAME": "Monitor Group",
+                            "SHORTMESSAGE": "健康状态为正常",
+                            "HEALTHSEVERITY": "5"
+                    };
+                    */
+
+                //};
+                if (ApmAPIdata.response-code==4000) mgList=ApmAPIdata.response.result;
+                //}
+
+            });
+            $.ajaxSettings.async = true;
+            return mgList;
+        }
+
+
+
+        /*根据监视器组ID，获取此监视器组的各监视器列表，示范如下
+         [{
+         "name": "169.254.165.8",
+         "type": "Port-Test",
+         "x": 229.92133633136152,
+         "y": 551.7411847165355,
+         "rel": []
+         },
+         {....}
+         ]
+         */
+        function getMGInfoFromAPM(host, port, key, GroupResourceID) {
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vmsAPI = new Array();
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (data) {
+                for (var n = 0; n < data.response.result.length; n++) {
+                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
+                    if (data.response.result[n].RESOURCEID == GroupResourceID) {
+                        vmsAPI = data.response.result[n].Monitors;
+                        $.ajaxSettings.async = true;
+                        return vmsAPI;
+                    }
+                }
+            });
+            $.ajaxSettings.async = true;
+            return vmsAPI;
+        }
+
+        //从JSON对象数组中获取一个KEY的特定VALUE的第一个INDEX；
+        function findElementIdx(jsonArrayToSearch, key, value) {
+            //Array = JSON.parse(JSON.stringify(jsonArrayToSearch,key));
+            for (var i = 0; i < jsonArrayToSearch.length; i++) {
+                if (jsonArrayToSearch[i][key] == value) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+    </script>
+</head>
+<body>
+<style type="text/css">
+    body {
+
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
+    header {
+        font-weight: bold;
+        font-size: 30px;
+    }
+
+    header span {
+        vertical-align: middle;
+        font-size: .5em;
+        color: #999;
+    }
+
+    header span a {
+        font-size: .9em;
+    }
+
+    section:first-of-type header {
+        font-size: 50px;
+    }
+
+    section {
+        margin-bottom: 30px;
+    }
+
+    ul > li {
+        margin-bottom: 2px;
+    }
+
+    button, select {
+        margin-right: 20px;
+    }
+
+    input {
+        font-family: 'Montserrat', sans-serif !important;
+
+    }
+</style>
+
+
+
+    <div id="content1" width="100%" height="98%" align="center">
+
+        <div id="filterDiv" style="width: 99.2%">
+
+        <fieldset style="color:#DCDCDC;border-width: 1px; border-color: #7a7a7a;height:30px">
+            <legend style="color: #fdfdfd;height:10px" id="showAlarmLegend">告警筛选：</legend>
+            <label style="color: #fdfdfd">业务组:</label>
+            <select name="mglist" id="mglist" style='width:200px'>
+            </select>
+            <label style="color: #fdfdfd">字段: </label>
+            <select id="filter-field">
+                <option></option>
+                <option value="name" selected>监视器名称</option>
+                <option value="type">类型</option>
+                <option value="status">运行状态</option>
+                <option value="message">消息</option>
+                <option value="datetime">时间</option>
+                <option value="availability">可用性</option>
+                <option value="function">Likes name &amp; type &lt; 3</option>
+            </select>
+
+
+            <label style="color: #fdfdfd">条件:</label>
+            <select id="filter-type">
+                <option value="=">=</option>
+                <option value="<">&lt;</option>
+                <option value="<=">&lt;=</option>
+                <option value=">">&gt;</option>
+                <option value=">=">&gt;=</option>
+                <option value="!=">!=</option>
+                <option value="like" selected>包含</option>
+            </select>
+
+
+            <label style="color: #fdfdfd">值: </label><input id="filter-value" type="text" placeholder="过滤条件">
+
+            <input id="filter-clear" type="button" value="清除筛选条件" style="margin-left:40px;">
+
+        </fieldset>
+       </div>
+        <div id="example-table-filters" style="width: 99%;height: 30%"></div>
+
+
+    </div>
+
+
+    </div>
+
+
+</body>
+</html>
