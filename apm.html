@@ -56,13 +56,7 @@
             left: 10px;
         }
 
-        #clock_beijing {
-            position: relative;
-            top: 6px;
-            left: 45px;
-            z-index: 8;
-            background-color: #171717;
-        }
+        div.clockdemo{border:1px solid #CCC;background:red;position:fixed;height:100px;width:100px;z-index:100000;left:100px;top:100px;	}
 
 
     </style>
@@ -103,8 +97,10 @@
         $(document).ready(function () {
 
                     canvas = document.getElementById('canvas');
-                    canvas.height = document.body.clientHeight*0.65;
-                    canvas.width = document.body.clientWidth*0.95;
+            canvas.height = window.screen.height*0.65;
+            canvas.width = window.screen.width*0.95;
+//                    canvas.height = window.screen.availHeight*0.65;
+//                    canvas.width = window.screen.availWidth*0.95;
                     //canvas.width = $("#canvas").parent().width() - 1;
                     //canvas.height = $("#canvas").parent().height() - 1;
                     stage = new JTopo.Stage(canvas);
@@ -136,6 +132,33 @@
                     //$('#content1').prepend(toobarDiv);
                     showJTopoToobar(stage);
 
+                    /*返回的结果集为
+                     {"NAME","RESOURCEID","DISPLAYNAME","DESCRIPTION"}
+                     */
+                    var vMgList = getApmMonitorgroupList(apmHost, apmPort, apiKey);
+                    MaxMGCount=vMgList.length;
+                    //用业务组填充下拉列表，并关联事件
+                    var vMGSelect = document.getElementById('mglist');
+                    for (var ii = 0; ii < vMgList.length; ii++) {
+                        vMGSelect.options.add(new Option(vMgList[ii].DISPLAYNAME, vMgList[ii].RESOURCEID));
+                    }
+                    ;
+
+                    $("#mglist").click(function(){
+                        var vCurrentMG1 = document.getElementById('mglist');
+                        var selIndex = 0; //序号，取当前选中选项的序号
+                        selIndex = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
+                        strResourceID = vCurrentMG1.options[selIndex].value;
+                        strMoniterGroupName = vMgList[selIndex].NAME;//取业务组数组中的索引对应的业务组名称，而非显示名称
+                        //var mgSelectIdx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
+                        showMGView(strMoniterGroupName, selIndex);
+                        CurrentMGIndex=selIndex;
+                        if (isLinkMode==true) {
+                            //CurrentMGIndex = CurrentMGIndeIx + 1;
+                        }
+                        return;
+                    });
+
                     $("#showAlarm").hide();
                     stage.click(function (event) {
                         if (event.button == 0) {// 右键
@@ -147,32 +170,32 @@
                     //设置默认显示的业务组，默认为配置文件数组中的第一个，即索引号为0的，用完加1
                     strMoniterGroupName = varConfig.monitorgroups[CurrentMGIndex].name;
                     showMGView(strMoniterGroupName,CurrentMGIndex);
-                    CurrentMGIndex=CurrentMGIndex+1;
+                    //CurrentMGIndex=CurrentMGIndex+1;
                     //document.getElementById("mgTileLegend").innerText="ddd";
 
                     //定期刷新状态
                     $(function () {
-                        setInterval(re, 3000);
+                        setInterval(re, 5000);
                     });
 
                     function re() {
                         //alert("loop"+loopSlide);
                         //loopSlide=true;
-                        if (isLinkMode==false) {
-                            if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
-                            var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
-                            var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
-                            showMGView(showMGName, showMGidx);
-                            CurrentMGIndex = CurrentMGIndex + 1;
+                        if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
 
-                            return;
-                        }else{
-                            //CurrentMGIndex = CurrentMGIndex - 1;
-                            if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
-                            var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
-                            var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
-                            showMGView(showMGName, showMGidx);
+                        var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
+                        var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
+                        showMGView(showMGName, showMGidx);
+
+
+                        var currentSelectedMGidx = findElementIdx(vMgList, "NAME", showMGName);
+                        document.getElementById("mglist").options[currentSelectedMGidx].selected = true;
+
+                        if (isLinkMode==true) {
+                            CurrentMGIndex = CurrentMGIndex + 1;
                         }
+
+                        return;
                     }
 
                     //setInterval("refreshMGView(strMoniterGroupName,idx);", 10000); //指定1秒刷新一次
@@ -223,6 +246,7 @@
                         showTable();
 
                         apcNode = availabilityPeiChartNode(curResourceID, $("#canvas").width()-232, 22);
+
 
                         scene.add(apcNode);
                         stage.add(scene);
@@ -542,11 +566,12 @@
                         mg=getMGSumInfoFromAPM(apmHost, apmPort, apiKey, MGID);
 
                         //显示业务组名称标题
-                        var msgNode = new JTopo.TextNode("业务组["+mg.DISPLAYNAME+"]运行情况");
-                        msgNode.setBound(1,40);
-                        msgNode.fontColor = "239,239,239";
-                        msgNode.font = "20px Consolas";
+                        //var msgNode = new JTopo.TextNode("业务组["+mg.DISPLAYNAME+"]运行情况");
+                        //msgNode.setBound(1,40);
+                        //msgNode.fontColor = "239,239,239";
+                        //msgNode.font = "20px Consolas";
                         document.getElementById("mgTileLegend").innerText="> 业务组  ["+mg.DISPLAYNAME+"]  运行情况 <";
+
                         //alert(mg.DISPLAYNAME);
 
 
@@ -578,10 +603,12 @@
                         var now = new Date();
                         var nowStr = now.format("yyyy-MM-dd hh:mm:ss");
                         var ClockNode= new JTopo.TextNode(""+nowStr);
-                        ClockNode.setBound(1,$("#canvas").height()-20);
+                        ClockNode.setBound(1,$("#canvas").height()-50);
                         ClockNode.fontColor = "239,239,239";
                         ClockNode.font = "18px Consolas";
-                        scene.add(ClockNode);
+                        //scene.add(ClockNode);
+                        document.getElementById("showAlarmLegend").innerText="告警筛选：["+ nowStr + "]";
+
 
 
 
@@ -620,8 +647,8 @@
                             }
                             document.getElementById("showAlarmText").innerHTML = msg;
                             $("#showAlarm").css({
-                                top: event.pageY + 100,
-                                left: event.pageX - 680,
+                                top: (window.screen.height)/2-(20 * (linenum + 2) - 5)*1.5,
+                                left: (window.screen.width)/2-300,
                                 height: 20 * (linenum + 2) - 5,
                                 width: 600
                             }).show();
@@ -661,7 +688,7 @@
 
                     //setTimeout('myrefresh()',10000); //指定20秒刷新一次
 
-/*
+
                      $('#clock_beijing').jClocksGMT(
                      {
                      title: 'BJ',
@@ -670,9 +697,9 @@
                      dateformat: 'YYYY/MM/DD',
                      offset: '+8'
                      });
-                     $('#clock_beijing').css({top:100,left:200, position:fixed}).show();
+                    // $('#clock_beijing').css({top:100,left:200, position:fixed}).show();
 
-*/
+
 
                     function customFilter(data) {
                         return data.cheese && data.height < 3;
@@ -887,6 +914,32 @@
             return MGSum;
         }
 
+        //从APM系统中获取所有业务组列表
+        function getApmMonitorgroupList(host, port, key) {
+            var mgList = new Array();
+            mgList = [];
+            //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMonitorGroups?apikey=" + key;
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
+                for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
+                    //初始化变量
+                    var v = {
+                        "NAME": ApmAPIdata.response.result[n].NAME,
+                        "RESOURCEID": ApmAPIdata.response.result[n].RESOURCEID,
+                        "DISPLAYNAME": ApmAPIdata.response.result[n].DISPLAYNAME,
+                        "DESCRIPTION": ApmAPIdata.response.result[n].DESCRIPTION,
+                    };
+                    mgList.push(v);
+                }
+
+            });
+            $.ajaxSettings.async = true;
+            return mgList;
+        }
+
+
+
         /*根据监视器组ID，获取此监视器组的各监视器列表，示范如下
          [{
          "name": "169.254.165.8",
@@ -1050,26 +1103,28 @@
     <label id="showAlarmText">showalarmtext</label>
 </div>
 
-<div id="clock_beijing"></div>
+
 
 <center>
 
-    <div id="content1">
+    <div id="content1" width="100%" height="98%" align="center">
         <div class="jtopo_toolbar" style="width:99%">
             <fieldset id="mgTitle" style="color:#DCDCDC;border-width: 1px; border-color: #7a7a7a;height:50px"><legend id="mgTileLegend" style="font-size: 20px;font-weight:bold" align="center">业务组</legend>
+                <label for="mglist" style="font-size: 14px;color: #fdfdfd">业务组：</label><select name="mglist" id="mglist" style='width:200px'>
+                </select>
                 <input type="radio" name="modeRadio" value="normal" checked id="r1"/>
-                <label for="r1" style="color: #fdfdfd"> 默认</label>
-                &nbsp;<input type="radio" name="modeRadio" value="select" id="r2" checked/><label for="r2" style="color: #fdfdfd"> 框选</label>
-                &nbsp;<input type="radio" name="modeRadio" value="drag" id="r3"/><label for="r3" style="color: #fdfdfd"> 平移</label>
-                &nbsp;<input type="radio" name="modeRadio" value="edit" id="r4"/><label for="r4" style="color: #fdfdfd"> 编辑</label>
-                &nbsp;&nbsp;<input type="button" id="centerButton" value="居中显示"/>
-                <input type="button" id="fullScreenButton" value="全屏显示"/>
-                <input type="button" id="zoomOutButton" value=" 放 大 " />
-                <input type="button" id="zoomInButton" value=" 缩 小 " />
-                &nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox"  style="color: #fdfdfd">固定视图</label>
+                <label for="r1" style="font-size: 14px;color: #fdfdfd"> 默认</label>
+                &nbsp;<input type="radio" name="modeRadio" value="select" id="r2" checked/><label for="r2" style="font-size: 14px;color: #fdfdfd"> 框选</label>
+                &nbsp;<input type="radio" name="modeRadio" value="drag" id="r3"/><label for="r3" style="font-size: 14px;color: #fdfdfd"> 平移</label>
+                &nbsp;<input type="radio" name="modeRadio" value="edit" id="r4"/><label for="r4" style="font-size: 14px;color: #fdfdfd"> 编辑</label>
+                &nbsp;&nbsp;<input type="button" id="centerButton"  style="font-size: 11px" value="居中显示"/>
+                <input type="button" id="fullScreenButton"  style="font-size: 11px" value="全屏显示"/>
+                <input type="button" id="zoomOutButton"  style="font-size: 11px" value=" 放 大 " />
+                <input type="button" id="zoomInButton"  style="font-size: 11px" value=" 缩 小 " />
+                &nbsp;&nbsp;<input type="checkbox" id="linkCheckbox"/><label for="linkCheckbox"  style="font-size: 14px;color: #fdfdfd">自动轮播</label>
                 &nbsp;&nbsp;<input type="text" id="findText" value="" onkeydown="findButton.click()">
-                <input type="button" id="findButton" value=" 查 询 ">
-                &nbsp;&nbsp;<input type="button" id="exportButton" value="导出PNG">
+                <input type="button" id="findButton"  style="font-size: 11px" value=" 查 询 ">
+                &nbsp;&nbsp;<input type="button" id="exportButton"  style="font-size: 11px" value="导出PNG">
             </fieldset>
         </div>
         <div id="content">
@@ -1079,7 +1134,7 @@
         <div id="filterDiv" style="width: 99.2%">
 
         <fieldset style="color:#DCDCDC;border-width: 1px; border-color: #7a7a7a;height:30px">
-            <legend style="color: #fdfdfd;height:10px">告警筛选：</legend>
+            <legend style="color: #fdfdfd;height:10px" id="showAlarmLegend">告警筛选：</legend>
             <label style="color: #fdfdfd">字段: </label>
             <select id="filter-field">
                 <option></option>
@@ -1112,13 +1167,17 @@
         </fieldset>
        </div>
         <div id="example-table-filters" style="width: 99%;height: 30%"></div>
-        <script type="text/javascript">
 
-            //<div id="clock_beijing"></div>
+        <script type="text/javascript">
+//            <div id="clock_beijing" style="position:fixed;height:100px;width:100px;z-index:100000;left:8px;top:50px;"></div>
 
         </script>
 
     </div>
+
+
+    </div>
+
 
 </center>
 </body>

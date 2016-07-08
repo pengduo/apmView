@@ -13,7 +13,9 @@
     <script type="text/javascript" src="config/apm.js"></script>
 
     <script id='code'>
-        var vm = {
+
+
+            var vm = {
             name: "Node_Name",
             x: 0,
             y: 0,
@@ -32,9 +34,35 @@
 
 
         $(document).ready(function () {
+
+            var s = "";
+            s += " 网页可见区域宽："+ document.body.clientWidth+"<br />";
+            s += " 网页可见区域高："+ document.body.clientHeight+"<br />";
+            s += " 网页可见区域宽："+ document.body.offsetWidth + " (包括边线和滚动条的宽)"+"<br />";
+            s += " 网页可见区域高："+ document.body.offsetHeight + " (包括边线的宽)"+"<br />";
+            s += " 网页正文全文宽："+ document.body.scrollWidth+"<br />";
+            s += " 网页正文全文高："+ document.body.scrollHeight+"<br />";
+            s += " 网页被卷去的高(ff)："+ document.body.scrollTop+"<br />";
+            s += " 网页被卷去的高(ie)："+ document.documentElement.scrollTop+"<br />";
+            s += " 网页被卷去的左："+ document.body.scrollLeft+"<br />";
+            s += " 网页正文部分上："+ window.screenTop+"<br />";
+            s += " 网页正文部分左："+ window.screenLeft+"<br />";
+            s += " 屏幕分辨率的高："+ window.screen.height+"<br />";
+            s += " 屏幕分辨率的宽："+ window.screen.width+"<br />";
+            s += " 屏幕可用工作区高度："+ window.screen.availHeight+"<br />";
+            s += " 屏幕可用工作区宽度："+ window.screen.availWidth+"<br />";
+            s += " 你的屏幕设置是 "+ window.screen.colorDepth +" 位彩色"+"<br />";
+            s += " 你的屏幕设置 "+ window.screen.deviceXDPI +" 像素/英寸"+"<br />";
+
+
             canvas = document.getElementById('canvas');
-            canvas.height = document.body.clientHeight*0.65;
-            canvas.width = document.body.clientWidth*0.95;
+//            canvas.height = document.body.clientHeight*0.65;
+//            canvas.width = document.body.clientWidth*0.95;
+//            canvas.height = window.screen.height*0.65;
+//            canvas.width = window.screen.width*0.95;
+            canvas.height = window.screen.availHeight*0.65;
+            canvas.width = window.screen.availWidth*0.95;
+
 
             stage = new JTopo.Stage(canvas);
             scene = new JTopo.Scene(stage);
@@ -71,6 +99,7 @@
                 strResourceID = vCurrentMG1.options[index].value;
                 strMoniterGroupName = vCurrentMG1.options[index].text;
                 var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+                //var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
                 initMGView(strMoniterGroupName, mgSelectIdx);
 
                 //window.location.href = $(this).find("option:selected").attr("id") + '.html';
@@ -324,9 +353,9 @@
                  });
 
 
-                link.addEventListener('mouseover', function (event) {
+                //link.addEventListener('mouseover', function (event) {
                   //  createTextNode('点击连线后按鼠标双击可以删除此连线！', 2);
-                });
+                //});
 
                 scene.add(link);
                 return link;
@@ -553,11 +582,11 @@
     </script>
 </head>
 
-<body>
+<body >
 
 <center>
     <div id="content">
-        <canvas id="canvas" style="width: 98%;height: 60%"></canvas>
+        <canvas id="canvas" ></canvas>
     </div>
     <label id="myLabel" style="font-size:100%; background-color:rgb(245,245,245)">...</label><BR>
     <select name="mglist" id="mglist" style='width:200px'>

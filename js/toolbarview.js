@@ -56,11 +56,23 @@ function showJTopoToobar(stage) {
     $('#linkCheckbox').click(function () {
         //if ($('#linkCheckbox').attr('checked')) {
         if (this.checked){
-            isLinkMode = true; // 设置连线模式
+            isLinkMode = true; // 设置轮播模式
+            CurrentMGIndex = CurrentMGIndex + 1;
         } else {
-            isLinkMode = false; // 取消连线模式
+            isLinkMode = false; // 取消轮播模式
+            CurrentMGIndex = CurrentMGIndex - 1;
         }
-        //alert(isLinkMode);
+
+        /*
+        CurrentMGIndex = CurrentMGIndex - 1;
+        if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
+        alert(CurrentMGIndex);
+        var showMGName2 = varConfig.monitorgroups[CurrentMGIndex].name;
+
+        var showMGidx2 = findElementIdx(varConfig.monitorgroups, "name", showMGName2);
+        alert(showMGidx2);
+        showMGView(showMGName2,showMGidx2);
+*/
     });
 
     $('#fullScreenButton').click(function () {
