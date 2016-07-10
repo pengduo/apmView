@@ -1,1 +1,31 @@
-var varConfig = { "version": 35, "datetime": "2016-07-08 7:48:49", "monitorgroups": [ { "name": "Applications Manager", "resourceid": "10000012", "details": [ { "name": "169.254.165.8", "type": "Port-Test", "x": 1096.1104940346825, "y": 114.90113708222344, "rel": [] }, { "name": "169.254.165.8_PGSQL", "type": "PostgreSQL", "x": 802.2686817465234, "y": 260.8514410064133, "rel": [ "169.254.165.8", "bd_Windows 8" ] }, { "name": "169.254.165.8_Tomcat-server", "type": "Tomcat-server", "x": 566.0691132989404, "y": 263.57097481364224, "rel": [ "169.254.165.8_PGSQL" ] }, { "name": "AppManager Home Page", "type": "UrlMonitor", "x": 316.0795621838291, "y": 262.4851894198464, "rel": [ "169.254.165.8_Tomcat-server" ] }, { "name": "bd_Windows 8", "type": "Windows 10", "x": 1097.9793719028637, "y": 406.6681057604246, "rel": [] } ] }, { "name": "My App2", "resourceid": "10000115", "details": [ { "name": "169.254.165.8_Tomcat-server", "type": "Tomcat-server", "x": 1220.3994569622087, "y": 419.2726171153381, "rel": [ "AppManager Home Page" ] }, { "name": "AppManager Home Page", "type": "UrlMonitor", "x": 834.5542767282799, "y": 42.86153136380739, "rel": [ "bd_Windows 8" ] }, { "name": "bd_Windows 8", "type": "Windows 10", "x": 510.15710436262066, "y": 418.0947814631613, "rel": [] } ] }, { "name": "My App3", "resourceid": "10000121", "details": [ { "name": "169.254.165.8", "type": "Port-Test", "x": 385.7768254487598, "y": 339.10510552982873, "rel": [] }, { "name": "169.254.165.8_PGSQL", "type": "PostgreSQL", "x": 385.1648439486953, "y": 131.23564379714355, "rel": [ "169.254.165.8_Tomcat-server" ] }, { "name": "169.254.165.8_Tomcat-server", "type": "Tomcat-server", "x": 1322.016350747455, "y": 252.24400894776107, "rel": [ "169.254.165.8" ] } ] }, { "name": "My App4", "resourceid": "10000122", "details": [ { "name": "AppManager Home Page", "type": "UrlMonitor", "x": 445.2649387552433, "y": 278.92476599864494, "rel": [ "bd_Windows 8" ] }, { "name": "bd_Windows 8", "type": "Windows 10", "x": 1408.7259331660703, "y": 272.29666448620947, "rel": [] } ] } ] };
+var varConfig = {
+    "version": 11,
+    "datetime": "2016-07-10 21:44:57",
+    "monitorgroups": [{
+        "name": "Applications Manager",
+        "resourceid": "10000011",
+        "details": [{
+            "name": "AppManager Home Page",
+            "type": "UrlMonitor",
+            "x": 500.1846669688821,
+            "y": 257.648185627535,
+            "rel": ["localhost"]
+        }, {"name": "localhost", "type": "Windows 7", "x": 1267.5500639602542, "y": 261.0316975619644, "rel": []}]
+    }, {
+        "name": "My App2",
+        "resourceid": "10000082",
+        "details": [{
+            "name": "163.com",
+            "type": "UrlMonitor",
+            "x": 461.4398010224104,
+            "y": 161.58937268704176,
+            "rel": ["localhost"]
+        }, {
+            "name": "AppManager Home Page",
+            "type": "UrlMonitor",
+            "x": 1240.8307786509395,
+            "y": 171.68943686410785,
+            "rel": ["localhost"]
+        }, {"name": "localhost", "type": "Windows 7", "x": 883.1153421625495, "y": -10.78766523487866, "rel": []}]
+    }]
+};
