@@ -186,6 +186,10 @@
                         for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
                             //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
                             if (ApmAPIdata.response.result[n].RESOURCEID == strResourceID) {
+
+                                //存在两种情况，一种有子组，需要迭代下探取监视器，一种是没有子组，直接取监视器
+
+                                if (ApmAPIdata.response.result[n].hasOwnProperty('Monitors')){
                                 for (var i = 0; i < ApmAPIdata.response.result[n].Monitors.length; i++) {
                                     var node = new JTopo.Node(ApmAPIdata.response.result[n].Monitors[i].NAME);
                                     node.setLocation(Math.random() * 800, Math.random() * 600);
@@ -206,6 +210,36 @@
                                     vms.push(v);
                                     countMonitors++;
                                 }
+                                }
+
+                                if (ApmAPIdata.response.result[n].hasOwnProperty('SubMonitorGroup')){
+                                    for (var i = 0; i < ApmAPIdata.response.result[n].SubMonitorGroup.length; i++) {
+                                      for (var ii = 0; ii < ApmAPIdata.response.result[n].SubMonitorGroup[i].Monitors.length; ii++) {
+                                        var node = new JTopo.Node(ApmAPIdata.response.result[n].SubMonitorGroup[i].Monitors[ii].NAME);
+                                        node.setLocation(Math.random() * 800, Math.random() * 600);
+                                        //约定好图片格式及位置，一定是TYPE类型包括在内
+                                        node.setImage('./img/apm/icon_monitors_' + ApmAPIdata.response.result[n].SubMonitorGroup[i].Monitors[ii].TYPE + '.png', false);
+                                        node.fontColor = "0,22,0";
+                                        node.shadow = true;  //增加阴影效果
+                                        scene.add(node);
+
+                                        //初始化变量
+                                        var v = {
+                                            "name": node.text,
+                                            "type": ApmAPIdata.response.result[n].SubMonitorGroup[i].Monitors[ii].TYPE,
+                                            "x": node.x,
+                                            "y": node.y,
+                                            "rel": []
+                                        };
+                                        vms.push(v);
+                                        countMonitors++;
+                                    }
+                                }
+                                }
+
+
+
+
                             }
                         }
 
@@ -454,8 +488,18 @@
             return -1;
         }
 
+            function findElem(arrayToSearch,attr,val){
+                for (var i=0;i<arrayToSearch.length;i++){
+                    if(arrayToSearch[i][attr]==val){
+                        return i;
+                    }
+                }
+                return -1;
+            }
 
-        //格式化配置文件最后修改时间
+
+
+            //格式化配置文件最后修改时间
         function getNowFormatDate() {
             var date = new Date();
             var seperator1 = "-";
