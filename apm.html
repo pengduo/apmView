@@ -956,14 +956,24 @@
         function getMGInfoFromAPM(host, port, key, GroupResourceID) {
             var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
             var vmsAPI = new Array();
+            vmsAPI=[];
             $.ajaxSettings.async = false;
             $.getJSON(vListMGDetailsURL, function (data) {
                 for (var n = 0; n < data.response.result.length; n++) {
                     //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
                     if (data.response.result[n].RESOURCEID == GroupResourceID) {
-                        vmsAPI = data.response.result[n].Monitors;
-                        $.ajaxSettings.async = true;
-                        return vmsAPI;
+
+                        //需要判断是否含有子业务组进行深入迭代
+                        if (data.response.result[n].hasOwnProperty('Monitors')) {
+                            vmsAPI = data.response.result[n].Monitors;
+                        };
+
+                        if (data.response.result[n].hasOwnProperty('SubMonitorGroup')) {
+                            for (var i = 0; i < data.response.result[n].SubMonitorGroup.length; i++) {
+                                vmsAPI = vmsAPI.concat(data.response.result[n].SubMonitorGroup[i].Monitors);
+                           }
+                        };
+
                     }
                 }
             });
@@ -975,8 +985,12 @@
          返回：一个合并的对象
          */
 
-        function MergeVMS(vmsConfieFile, vmsAPI) {
+        function MergeVMS(ivmsConfieFile, ivmsAPI) {
             var vmsAll = new Array();
+            var vmsConfieFile = new Array();
+            vmsConfieFile = ivmsConfieFile;
+            var vmsAPI = new Array();
+            vmsAPI=ivmsAPI;
             var vmRecorderConfieFile = {};
             var vmRecorderAPI = {};
             var vmComplete = {};
