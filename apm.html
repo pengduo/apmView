@@ -829,15 +829,19 @@
                 //应用性能透视的没有响应时间一说，就取平均响应时间值，位置不一样
                 switch(getMonitorData.response.result[0].TYPE) {
                     case 'APM-Insight-Instance':
-                        MOReponseTime =getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units;
+                        MOReponseTime =getMonitorData.response.result[0].Attribute[1].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units;
+                        break;
                     case 'AIX':
                         MOReponseTime = getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[2].Value + getMonitorData.response.result[0].Attribute[2].Units;
+                        break;
                     case 'ORACLE-DB-server':
                         MOReponseTime = getMonitorData.response.result[0].Attribute[31].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[31].Value + getMonitorData.response.result[0].Attribute[31].Units;
+                        break;
                     default :
                     {
                         var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
                         MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+                        break;
                     }
                 }
             });
