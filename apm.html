@@ -452,7 +452,7 @@
                         node.fontColor = "255,255,204";
                         node.font = "13px Consolas";
                         node.shadow = true;  //增加阴影效果
-                        node.alpha = 0.99;
+                       // node.alpha = 0.99;
                         node.fillColor = "255,255,255";
                         scene.add(node);
 
@@ -625,7 +625,7 @@
                         node.titles = ['可用', '故障'];
                         node.text = "可用性";
                         node.fontColor = "255,255,0";
-                        node.alpha = 80;
+                        //node.alpha = 80;
                         node.selected = false;
                         node.setLocation(x, y);
                         node.borderWidth = 1;
@@ -829,19 +829,22 @@
                 //应用性能透视的没有响应时间一说，就取平均响应时间值，位置不一样
                 switch(getMonitorData.response.result[0].TYPE) {
                     case 'APM-Insight-Instance':
-                        MOReponseTime =getMonitorData.response.result[0].Attribute[1].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units;
+                        //MOReponseTime =getMonitorData.response.result[0].Attribute[1].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units;
+                        MOReponseTime = getMonitorData.response.result[0].Attribute[1].Value ;
                         break;
                     case 'AIX':
-                        MOReponseTime = getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[2].Value + getMonitorData.response.result[0].Attribute[2].Units;
+                        //MOReponseTime = getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[2].Value + getMonitorData.response.result[0].Attribute[2].Units;
+                        MOReponseTime =  getMonitorData.response.result[0].Attribute[2].Value ;
                         break;
                     case 'ORACLE-DB-server':
-                        MOReponseTime = getMonitorData.response.result[0].Attribute[31].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[31].Value + getMonitorData.response.result[0].Attribute[31].Units;
+                        //MOReponseTime = getMonitorData.response.result[0].Attribute[31].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[31].Value + getMonitorData.response.result[0].Attribute[31].Units;
+                        MOReponseTime = getMonitorData.response.result[0].Attribute[31].Value ;
                         break;
                     default :
                     {
                         var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
-                        MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
-                        break;
+                        //MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
+                        MOReponseTime =  getMonitorData.response.result[0].Attribute[maxAttribute].Value  ;
                     }
                 }
             });
