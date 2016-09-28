@@ -180,7 +180,7 @@
                     beginNode = null;
                     //vms = [];
                     //根据APM的查询特定业务组的输出的JSON文件，初始化产生各监视器，位置随机产品，供调整
-                    var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&resourceid=" + strResourceID;
+                    var vListMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&groupId=" + strResourceID;
                     $.ajaxSettings.async = false;
                     $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
                         for (var n = 0; n < ApmAPIdata.response.result.length; n++) {

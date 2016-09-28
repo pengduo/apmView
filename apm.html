@@ -141,7 +141,7 @@
                     //用业务组填充下拉列表，并关联事件
                     var vMGSelect = document.getElementById('mglist');
                     for (var ii = 0; ii < vMgList.length; ii++) {
-                        vMGSelect.options.add(new Option(vMgList[ii].DISPLAYNAME, vMgList[ii].RESOURCEID));
+                        vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
                     }
                     ;
 
@@ -151,13 +151,15 @@
                         selIndex = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
                         strResourceID = vCurrentMG1.options[selIndex].value;
                         strMoniterGroupName = vMgList[selIndex].NAME;//取业务组数组中的索引对应的业务组名称，而非显示名称
+                        //alert(strMoniterGroupName);
+                        //alert(selIndex);
                         //var mgSelectIdx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
                         showMGView(strMoniterGroupName, selIndex);
                         CurrentMGIndex=selIndex;
                         if (isLinkMode==true) {
                             //CurrentMGIndex = CurrentMGIndeIx + 1;
                         }
-                        return;
+                        //return;
                     });
 
                     $("#showAlarm").hide();
@@ -333,6 +335,7 @@
                                 //effect.addNode(destinationnode, sourcenode);
                                 //effect.play();
 
+
                                 var link1 = new JTopo.Link(sourcenode, destinationnode);
                                 var endName = vmsData[i].rel[j];
                                 var destinationnodedata = findVmsNodeByText(endName);
@@ -452,8 +455,8 @@
                         node.fontColor = "255,255,204";
                         node.font = "13px Consolas";
                         node.shadow = true;  //增加阴影效果
-                       // node.alpha = 0.99;
-                        node.fillColor = "255,255,255";
+                        node.alpha = 0.99;
+                       // node.fillColor = "255,255,255";
                         scene.add(node);
 
                         //增加监听鼠标双击事件，弹出菜单
@@ -905,7 +908,7 @@
          */
         function getMGSumInfoFromAPM(host, port, key, GroupResourceID) {
             var MGSum = {};
-            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&groupId=" + GroupResourceID;
             var vmsAPI = new Array();
             $.ajaxSettings.async = false;
             $.getJSON(vListMGDetailsURL, function (data) {
@@ -968,7 +971,7 @@
          ]
          */
         function getMGInfoFromAPM(host, port, key, GroupResourceID) {
-            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&resourceid=" + GroupResourceID;
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&groupId=" + GroupResourceID;
             var vmsAPI = new Array();
             vmsAPI=[];
             $.ajaxSettings.async = false;
