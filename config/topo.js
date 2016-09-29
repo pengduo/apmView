@@ -1,159 +1,147 @@
 var varConfig = {
-    "version": 9,
-    "datetime": "2016-09-28 22:37:21",
+    "version": 11,
+    "datetime": "2016-09-29 22:46:23",
     "monitorgroups": [{
-        "name": "Customer Portal",
-        "resourceid": "10001434",
-        "details": [{
-            "name": "Apache",
-            "type": "Apache-server",
-            "x": 291.836472786963,
-            "y": 229.98212822712958,
-            "rel": ["Ceph"]
-        }, {
-            "name": "ApacheServer",
-            "type": "Docker Container",
-            "x": 10.75570397078991,
-            "y": 289.5789232570678,
-            "rel": ["ServiceBus"]
-        }, {
-            "name": "Ceph",
-            "type": "Ceph Storage",
-            "x": 517.291297018528,
-            "y": 268.19218285381794,
-            "rel": ["hadoop"]
-        }, {
-            "name": "Hbase",
-            "type": "HBase",
-            "x": 119.92542091757059,
-            "y": 517.3391369171441,
-            "rel": ["Novell"]
-        }, {
-            "name": "Novell",
-            "type": "Novell",
-            "x": 15.333646722137928,
-            "y": 470.7258384898305,
-            "rel": ["ApacheServer"]
-        }, {
-            "name": "ServiceBus",
-            "type": "AzureServiceBus",
-            "x": 84.05177146196365,
-            "y": 233.29054741188884,
-            "rel": []
-        }, {
-            "name": "Solr",
-            "type": "ApacheSolr",
-            "x": 207.08067771047354,
-            "y": 104.53632669523358,
-            "rel": ["Apache"]
-        }, {
-            "name": "Webserver",
-            "type": "Apache-server",
-            "x": 276.25886611640453,
-            "y": 118.4300989843905,
-            "rel": []
-        }, {
-            "name": "apm-u12-lap1",
-            "type": "Node",
-            "x": 576.0322934016585,
-            "y": 135.92350487597287,
-            "rel": []
-        }, {
-            "name": "cassandra",
-            "type": "Cassandra",
-            "x": 455.7983301579952,
-            "y": 205.37963169626892,
-            "rel": []
-        }, {
-            "name": "hadoop",
-            "type": "Hadoop",
-            "x": 446.4940935373306,
-            "y": 441.4592379704118,
-            "rel": ["Hbase"]
-        }, {"name": "informic", "type": "Informix", "x": 776.2806097045541, "y": 226.18261598981917, "rel": []}]
-    }, {"name": "vcenter", "resourceid": "10001068", "details": []}, {
         "name": "Applications Manager",
         "resourceid": "10000011",
         "details": [{
             "name": "172.21.199.125",
             "type": "Port-Test",
-            "x": 6.537545308470726,
-            "y": 439.7547829654068,
-            "rel": []
+            "x": 187.03271597623825,
+            "y": 93.52386351674795,
+            "rel": ["172.21.199.125_Tomcat-server"]
         }, {
             "name": "172.21.199.125_Tomcat-server",
             "type": "Tomcat-server",
-            "x": 307.5045894831419,
-            "y": 223.42766798101366,
-            "rel": ["AppManager Home Page"]
+            "x": 299.1350354626775,
+            "y": 455.7921084109694,
+            "rel": ["CouchBase"]
         }, {
             "name": "AppManager Home Page",
             "type": "UrlMonitor",
-            "x": 28.646713495254517,
-            "y": 314.70993468537927,
+            "x": 380.9271313250065,
+            "y": 121.640908671543,
             "rel": ["172.21.199.125"]
-        }, {
-            "name": "CouchBase",
-            "type": "Couchbase",
-            "x": 676.8687823787332,
-            "y": 29.7247517388314,
-            "rel": ["172.21.199.125_Tomcat-server"]
-        }]
+        }, {"name": "CouchBase", "type": "Couchbase", "x": 257.3898494243622, "y": 526.5655388813466, "rel": []}]
     }, {
-        "name": "b5a30645-e91c-1eb3-fe7b-8effafc8dd0b",
-        "resourceid": "10000687",
+        "name": "Customer Portal",
+        "resourceid": "10001434",
         "details": [{
-            "name": "172.21.10.45",
-            "type": "XenServerHost",
-            "x": 207.36811980605125,
-            "y": 245.13962622731924,
+            "name": "Apache",
+            "type": "Apache-server",
+            "x": 96.46700657904148,
+            "y": 124.41251431591809,
             "rel": []
-        }]
+        }, {
+            "name": "ApacheServer",
+            "type": "Docker Container",
+            "x": 467.2455722466111,
+            "y": 237.47789952903986,
+            "rel": []
+        }, {
+            "name": "Ceph",
+            "type": "Ceph Storage",
+            "x": 94.90614365786314,
+            "y": 516.2488531786948,
+            "rel": []
+        }, {
+            "name": "Hbase",
+            "type": "HBase",
+            "x": 217.418653331697,
+            "y": 31.247458700090647,
+            "rel": []
+        }, {
+            "name": "Novell",
+            "type": "Novell",
+            "x": 36.45944073796272,
+            "y": 306.37030242942274,
+            "rel": []
+        }, {
+            "name": "ServiceBus",
+            "type": "AzureServiceBus",
+            "x": 174.50823038816452,
+            "y": 553.9393586106598,
+            "rel": ["hadoop"]
+        }, {
+            "name": "Solr",
+            "type": "ApacheSolr",
+            "x": 541.1742422729731,
+            "y": 417.01376074925065,
+            "rel": ["ServiceBus"]
+        }, {
+            "name": "Webserver",
+            "type": "Apache-server",
+            "x": 354.61859088391066,
+            "y": 186.0326096881181,
+            "rel": []
+        }, {
+            "name": "apm-u12-lap1",
+            "type": "Node",
+            "x": 162.62428853660822,
+            "y": 108.12652562744915,
+            "rel": []
+        }, {
+            "name": "cassandra",
+            "type": "Cassandra",
+            "x": 140.4026748612523,
+            "y": 94.98943900689483,
+            "rel": []
+        }, {
+            "name": "hadoop",
+            "type": "Hadoop",
+            "x": 301.15902218967676,
+            "y": 92.67399902455509,
+            "rel": []
+        }, {"name": "informic", "type": "Informix", "x": 661.9129244238138, "y": 393.3343686629087, "rel": ["Solr"]}]
     }, {
         "name": "MyApplication",
         "resourceid": "10001433",
         "details": [{
             "name": "EBS_11",
             "type": "OracleEBS",
-            "x": 241.0636192187667,
-            "y": 496.44430805929005,
+            "x": 607.8357705846429,
+            "y": 17.809902923181653,
             "rel": []
         }, {
             "name": "Kafka_testSetup",
             "type": "Kafka",
-            "x": 776.8578287214041,
-            "y": 364.6519258618355,
-            "rel": ["tuxedo"]
+            "x": 247.6796070113778,
+            "y": 501.61650334484875,
+            "rel": []
         }, {
             "name": "ListMonitorsXML",
             "type": "RESTAPIMonitor",
-            "x": 688.7953659519553,
-            "y": 516.4472373202443,
-            "rel": ["Kafka_testSetup"]
+            "x": 331.09199590981007,
+            "y": 120.21829769946635,
+            "rel": []
         }, {
             "name": "Nosql",
             "type": "OracleNoSQL",
-            "x": 202.75745876133442,
-            "y": 382.7420592773706,
+            "x": 529.2978750541806,
+            "y": 50.06734631024301,
             "rel": []
         }, {
             "name": "Solr",
             "type": "ApacheSolr",
-            "x": 234.17748492211103,
-            "y": 435.0572428666055,
-            "rel": []
+            "x": 412.9088142886758,
+            "y": 492.32170111499727,
+            "rel": ["ListMonitorsXML"]
         }, {
             "name": "postgres",
             "type": "PostgreSQL",
-            "x": 253.92473509907722,
-            "y": 196.3177395053208,
-            "rel": ["Nosql"]
-        }, {
-            "name": "tuxedo",
-            "type": "Oracle Tuxedo",
-            "x": 318.92213243991137,
-            "y": 461.8583818897605,
-            "rel": ["postgres", "Solr", "EBS_11"]
+            "x": 182.39092640578747,
+            "y": 440.0439966470003,
+            "rel": []
+        }, {"name": "tuxedo", "type": "Oracle Tuxedo", "x": 189.23768159002066, "y": 29.698182502761483, "rel": []}]
+    }, {
+        "name": "b5a30645-e91c-1eb3-fe7b-8effafc8dd0b",
+        "resourceid": "10000687",
+        "details": [{
+            "name": "172.21.10.45",
+            "type": "XenServerHost",
+            "x": 212.9290882498026,
+            "y": 516.8558409903198,
+            "rel": []
         }]
-    }, {"name": "xxx", "resourceid": "10001439", "details": []}]
+    }]
 };

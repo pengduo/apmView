@@ -976,23 +976,23 @@
             vmsAPI=[];
             $.ajaxSettings.async = false;
             $.getJSON(vListMGDetailsURL, function (data) {
-                for (var n = 0; n < data.response.result.length; n++) {
-                    //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
-                    if (data.response.result[n].RESOURCEID == GroupResourceID) {
-
-                        //需要判断是否含有子业务组进行深入迭代
-                        if (data.response.result[n].hasOwnProperty('Monitors')) {
+                var n=0;
+                //需要判断是否含有子业务组进行深入迭代
+                if (data.response.result[n].hasOwnProperty('Monitors')) {
                             vmsAPI = data.response.result[n].Monitors;
-                        };
+                };
 
-                        if (data.response.result[n].hasOwnProperty('SubMonitorGroup')) {
+                if (data.response.result[n].hasOwnProperty('SubMonitorGroup')) {
                             for (var i = 0; i < data.response.result[n].SubMonitorGroup.length; i++) {
-                                vmsAPI = vmsAPI.concat(data.response.result[n].SubMonitorGroup[i].Monitors);
+                                var vListSubMGDetailsURL = "http://" + apmHost + ":" + apmPort + "/AppManager/json/ListMGDetails?apikey=" + apiKey + "&groupId=" + data.response.result[n].SubMonitorGroup[i].RESOURCEID;
+                                $.ajaxSettings.async = false;
+                                $.getJSON(vListSubMGDetailsURL, function (ApmAPIdata_SubMG) {
+                                    vmsAPI = vmsAPI.concat(ApmAPIdata_SubMG.response.result[0].Monitors);//目前只支持子组的两层迭代
+                                });
+                                $.ajaxSettings.async = true;
                            }
-                        };
+                 };
 
-                    }
-                }
             });
             $.ajaxSettings.async = true;
             return vmsAPI;
