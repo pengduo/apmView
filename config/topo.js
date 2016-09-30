@@ -1,6 +1,6 @@
 var varConfig = {
-    "version": 11,
-    "datetime": "2016-09-29 22:46:23",
+    "version": 30,
+    "datetime": "2016-09-30 9:31:58",
     "monitorgroups": [{
         "name": "Applications Manager",
         "resourceid": "10000011",
@@ -43,7 +43,7 @@ var varConfig = {
             "type": "Ceph Storage",
             "x": 94.90614365786314,
             "y": 516.2488531786948,
-            "rel": []
+            "rel": ["ServiceBus"]
         }, {
             "name": "Hbase",
             "type": "HBase",
@@ -55,13 +55,13 @@ var varConfig = {
             "type": "Novell",
             "x": 36.45944073796272,
             "y": 306.37030242942274,
-            "rel": []
+            "rel": ["Ceph"]
         }, {
             "name": "ServiceBus",
             "type": "AzureServiceBus",
             "x": 174.50823038816452,
             "y": 553.9393586106598,
-            "rel": ["hadoop"]
+            "rel": ["hadoop", "Apache"]
         }, {
             "name": "Solr",
             "type": "ApacheSolr",
@@ -101,7 +101,7 @@ var varConfig = {
             "type": "OracleEBS",
             "x": 607.8357705846429,
             "y": 17.809902923181653,
-            "rel": []
+            "rel": ["Nosql"]
         }, {
             "name": "Kafka_testSetup",
             "type": "Kafka",
@@ -119,7 +119,7 @@ var varConfig = {
             "type": "OracleNoSQL",
             "x": 529.2978750541806,
             "y": 50.06734631024301,
-            "rel": []
+            "rel": ["tuxedo"]
         }, {
             "name": "Solr",
             "type": "ApacheSolr",
@@ -132,7 +132,13 @@ var varConfig = {
             "x": 182.39092640578747,
             "y": 440.0439966470003,
             "rel": []
-        }, {"name": "tuxedo", "type": "Oracle Tuxedo", "x": 189.23768159002066, "y": 29.698182502761483, "rel": []}]
+        }, {
+            "name": "tuxedo",
+            "type": "Oracle Tuxedo",
+            "x": 190.23768159002066,
+            "y": 29.698182502761483,
+            "rel": ["ListMonitorsXML"]
+        }]
     }, {
         "name": "b5a30645-e91c-1eb3-fe7b-8effafc8dd0b",
         "resourceid": "10000687",
@@ -143,5 +149,5 @@ var varConfig = {
             "y": 516.8558409903198,
             "rel": []
         }]
-    }]
+    }, {"name": "db", "resourceid": "10001441", "details": []}]
 };

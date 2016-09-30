@@ -57,7 +57,7 @@ function showJTopoToobar(stage) {
         //if ($('#linkCheckbox').attr('checked')) {
         if (this.checked){
             isLinkMode = true; // 设置轮播模式
-            CurrentMGIndex = CurrentMGIndex + 1;
+            //CurrentMGIndex = CurrentMGIndex + 1;
         } else {
             isLinkMode = false; // 取消轮播模式
             CurrentMGIndex = CurrentMGIndex - 1;

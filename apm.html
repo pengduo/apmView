@@ -9,7 +9,7 @@
 
 
             margin: 0 auto;
-            background-color: #171717;
+            background-color: #071717;
             alignment: center;
             border:1px solid #4d4d4d;
         }
@@ -137,25 +137,41 @@
                      {"NAME","RESOURCEID","DISPLAYNAME","DESCRIPTION"}
                      */
                     var vMgList = getApmMonitorgroupList(apmHost, apmPort, apiKey);
-                    MaxMGCount=vMgList.length;
+                    //MaxMGCount=vMgList.length;
                     //用业务组填充下拉列表，并关联事件
                     var vMGSelect = document.getElementById('mglist');
                     for (var ii = 0; ii < vMgList.length; ii++) {
+                        //运用new Option("文本","值")方法添加选项option
                         vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
-                    }
-                    ;
+                    };
+                    vMGSelect.options[0].selected;
 
-                    $("#mglist").click(function(){
+                    //设置默认显示的业务组，默认为配置文件数组中的第一个，即索引号为0的，用完加1
+                    //strMoniterGroupName = varConfig.monitorgroups[CurrentMGIndex].name;
+                    //showMGView(strMoniterGroupName,CurrentMGIndex);
+                    //CurrentMGIndex=CurrentMGIndex+1;
+                    //document.getElementById("mgTileLegend").innerText="ddd";
+
+
+                    $("#mglist").change(function(){
                         var vCurrentMG1 = document.getElementById('mglist');
                         var selIndex = 0; //序号，取当前选中选项的序号
+                        strResourceID = $("#mglist").val();                                 //获取选中记录的value值
+                        var mgSelectIdx = findElementIdx(varConfig.monitorgroups, "resourceid", strResourceID);
+                        //alert(mgSelectIdx);
+                        strMoniterGroupName= $("#mglist option:selected").text();         //获取选中记录的text值
+                        //strMoniterGroupName= $("#mglist option:selected").text();         //获取选中记录的text值
                         selIndex = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
-                        strResourceID = vCurrentMG1.options[selIndex].value;
-                        strMoniterGroupName = vMgList[selIndex].NAME;//取业务组数组中的索引对应的业务组名称，而非显示名称
+                        //strResourceID = vCurrentMG1.options[selIndex].value;
+                        //strMoniterGroupName = vMgList[selIndex].NAME;//取业务组数组中的索引对应的业务组名称，而非显示名称
                         //alert(strMoniterGroupName);
-                        //alert(selIndex);
-                        //var mgSelectIdx = findElementIdx(varConfig.monitorgroups, "name", strMoniterGroupName);
-                        showMGView(strMoniterGroupName, selIndex);
-                        CurrentMGIndex=selIndex;
+                        //alert(strResourceID);
+                        if (mgSelectIdx==-1) alert("没有配置此业务组的业务视图！")
+                        else {
+                            showMGView(strMoniterGroupName, mgSelectIdx);
+                            CurrentMGIndex=mgSelectIdx;
+                        }
+
                         if (isLinkMode==true) {
                             //CurrentMGIndex = CurrentMGIndeIx + 1;
                         }
@@ -170,33 +186,33 @@
                         }
                     });
 
-                    //设置默认显示的业务组，默认为配置文件数组中的第一个，即索引号为0的，用完加1
-                    strMoniterGroupName = varConfig.monitorgroups[CurrentMGIndex].name;
-                    showMGView(strMoniterGroupName,CurrentMGIndex);
-                    //CurrentMGIndex=CurrentMGIndex+1;
-                    //document.getElementById("mgTileLegend").innerText="ddd";
 
                     //定期刷新状态
                     $(function () {
-                        setInterval(re, 5000);
+                        CurrentMGIndex=0;
+                        setInterval(re, 10000);
                     });
 
                     function re() {
                         //alert("loop"+loopSlide);
                         //loopSlide=true;
-                        if (CurrentMGIndex == MaxMGCount) CurrentMGIndex = 0;
+                        //CurrentMGIndex=CurrentMGIndex-1;
 
                         var showMGName = varConfig.monitorgroups[CurrentMGIndex].name;
                         var showMGidx = findElementIdx(varConfig.monitorgroups, "name", showMGName);
-                        showMGView(showMGName, showMGidx);
-
-
-                        var currentSelectedMGidx = findElementIdx(vMgList, "NAME", showMGName);
-                        document.getElementById("mglist").options[currentSelectedMGidx].selected = true;
-
-                        if (isLinkMode==true) {
-                            CurrentMGIndex = CurrentMGIndex + 1;
+                        if (varConfig.monitorgroups[showMGidx].details.length>0) //如果此业务组没有关联任何监视器，退出
+                        {
+                            showMGView(showMGName, showMGidx);
+                            var currentSelectedMGidx = findElementIdx(vMgList, "NAME", showMGName);
+                            document.getElementById("mglist").options[currentSelectedMGidx].selected = true;
                         }
+                        alert(showMGName+'当前业务组索引号'+CurrentMGIndex);
+                        if (isLinkMode==true) {
+                            //varConfig.monitorgroups.length
+                            if (CurrentMGIndex == MaxMGCount-1) CurrentMGIndex = 0
+                            else  CurrentMGIndex = CurrentMGIndex + 1;
+                        }
+                        alert('之后业务组索引号'+CurrentMGIndex);
 
                         return;
                     }
@@ -205,12 +221,14 @@
                     //do while
 
 
-                    function showMGView(mgName, mgIdx) {
+                    function showMGView(mgName, mgIdx) { //业务组名称及在配置文件中的索引号
+                        if (mgIdx==-1) return;
                         scene.clear();
                         vms=[];
 
                         var showMGViewName = mgName, showMGViewIdx = mgIdx;
                         vmsF = varConfig.monitorgroups[mgIdx].details;
+                        if (vmsF.length==0) return;  //如果此业务组没有关联任何监视器，退出
                         var curResourceID = varConfig.monitorgroups[mgIdx].resourceid;
                         vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
                         vms = MergeVMS(vmsF, vmsA);
@@ -335,44 +353,70 @@
                                 //effect.addNode(destinationnode, sourcenode);
                                 //effect.play();
 
+                                var rs = "响应超时";
 
-                                var link1 = new JTopo.Link(sourcenode, destinationnode);
                                 var endName = vmsData[i].rel[j];
                                 var destinationnodedata = findVmsNodeByText(endName);
-                                var rs = "响应超时";
                                 if (destinationnodedata.HEALTHSEVERITY != 1) {
                                     rs = getMOReponseTime(apmHost, apmPort, apiKey, destinationnodedata.RESOURCEID);
                                 }
-
-                                switch (parseInt(destinationnodedata.HEALTHSEVERITY)) {
-                                    case 1:
-                                        link1.strokeColor = '255,0,0';  //红色
-                                        break;
-                                    case 5:
-                                        link1.strokeColor = '152,251,152';  //绿色
-                                        break;
-                                    case 4:
-                                        link1.strokeColor = '255,69,0'; //橙色
-                                        break;
-                                    default:
-                                        link1.strokeColor = '152,251,152';
-                                        break;
-                                }
-
-
-                                //显示响应时间
-                                link1.text = rs;
-                                link1.dashedPattern = 5;
-                                link1.lineWidth = 1;
-                                link1.direction = 'horizontal';
-                                link1.arrowsRadius = 10;
-
+                                var link1 = linkNode(sourcenode, destinationnode,destinationnodedata.HEALTHSEVERITY,rs[0].linkText,rs[1].linkTooltip);
                                 scene.add(link1);
 
                             }
                         }
                         //return 1;
 
+                    }
+
+                    function linkNode(nodeA, nodeZ, HEALTHSEVERITY,linkText,linkTooltip) {
+                        var link = new JTopo.Link(nodeA, nodeZ);
+                        //link.direction = 'vertical';
+                        //显示响应时间
+                        link.text =linkText ;
+                        link.dashedPattern = 5;
+                        link.lineWidth = 1;
+                        link.direction = 'horizontal';
+                        link.arrowsRadius = 10;
+
+                        switch (parseInt(HEALTHSEVERITY)) {
+                            case 1:
+                                link.strokeColor = '255,0,0';  //红色
+                                break;
+                            case 5:
+                                link.strokeColor = '152,251,152';  //绿色
+                                break;
+                            case 4:
+                                link.strokeColor = '255,69,0'; //橙色
+                                break;
+                            default:
+                                link.strokeColor = '152,251,152';
+                                break;
+                        }
+
+
+                        //link.addEventListener('dbclick', function (event) {
+                        //  deleteSelectedLink();
+                        //});
+
+                        link.addEventListener('mouseover', function (event) {
+                            //alert("over");
+                            link.text=linkTooltip;
+                        });
+
+                        link.addEventListener('mouseout', function (event) {
+                            //alert("over");
+                            link.text=linkText;
+                        });
+
+
+
+                        //link.addEventListener('mouseover', function (event) {
+                        //  createTextNode('点击连线后按鼠标双击可以删除此连线！', 2);
+                        //});
+
+                        //scene.add(link);
+                        return link;
                     }
 
 
@@ -455,7 +499,7 @@
                         node.fontColor = "255,255,204";
                         node.font = "13px Consolas";
                         node.shadow = true;  //增加阴影效果
-                        node.alpha = 0.99;
+                        //node.alpha = 0.99;
                        // node.fillColor = "255,255,255";
                         scene.add(node);
 
@@ -520,7 +564,7 @@
                         return count;
                     }
 
-                    function linkNode(nodeA, nodeZ, f) {
+                    function linkNode2(nodeA, nodeZ, f) {
                         var link;
                         if (f) {
                             link = new JTopo.FoldLink(nodeA, nodeZ);
@@ -825,29 +869,32 @@
         function getMOReponseTime(iapmHost, iapmPort, iapiKey, iresourceID) {
             //vGetMonitorDataURL = "http://localhost:9090/AppManager/json/GetMonitorData?apikey=ecd09e74b5afc6927364c5af4fde7dab&resourceid=" + resourceID;
             vGetMonitorDataURL = "http://" + iapmHost + ":" + iapmPort + "/AppManager/json/GetMonitorData?apikey=" + iapiKey + "&resourceid=" + iresourceID;
-            var MOReponseTime = "";
+            var MOReponseTime = [];
             $.ajaxSettings.async = false;
             $.getJSON(vGetMonitorDataURL, function (getMonitorData) {
 
                 //应用性能透视的没有响应时间一说，就取平均响应时间值，位置不一样
                 switch(getMonitorData.response.result[0].TYPE) {
                     case 'APM-Insight-Instance':
-                        //MOReponseTime =getMonitorData.response.result[0].Attribute[1].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units;
-                        MOReponseTime = getMonitorData.response.result[0].Attribute[1].Value ;
+                        MOReponseTime.push({"linkText":getMonitorData.response.result[0].Attribute[1].Value});
+                        MOReponseTime.push({"linkTooltip":getMonitorData.response.result[0].Attribute[1].DISPLAYNAME+":"+ getMonitorData.response.result[0].Attribute[1].Value + getMonitorData.response.result[1].Attribute[1].Units});
+
                         break;
                     case 'AIX':
-                        //MOReponseTime = getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[2].Value + getMonitorData.response.result[0].Attribute[2].Units;
-                        MOReponseTime =  getMonitorData.response.result[0].Attribute[2].Value ;
+                         MOReponseTime.push({"linkText":getMonitorData.response.result[0].Attribute[2].Value}) ;
+                        MOReponseTime.push({"linkTooltip":getMonitorData.response.result[0].Attribute[2].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[2].Value + getMonitorData.response.result[0].Attribute[2].Units});
+
                         break;
                     case 'ORACLE-DB-server':
-                        //MOReponseTime = getMonitorData.response.result[0].Attribute[31].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[31].Value + getMonitorData.response.result[0].Attribute[31].Units;
-                        MOReponseTime = getMonitorData.response.result[0].Attribute[31].Value ;
+
+                        MOReponseTime.push({"linkText": getMonitorData.response.result[0].Attribute[31].Value}) ;
+                        MOReponseTime.push({"linkTooltip":getMonitorData.response.result[0].Attribute[31].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[31].Value + getMonitorData.response.result[0].Attribute[31].Units});
                         break;
                     default :
                     {
                         var maxAttribute = getMonitorData.response.result[0].Attribute.length - 1;
-                        //MOReponseTime = getMonitorData.response.result[0].Attribute[maxAttribute].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units;
-                        MOReponseTime =  getMonitorData.response.result[0].Attribute[maxAttribute].Value  ;
+                        MOReponseTime.push({"linkText": getMonitorData.response.result[0].Attribute[maxAttribute].Value}) ;
+                        MOReponseTime.push({"linkTooltip":getMonitorData.response.result[0].Attribute[maxAttribute].DISPLAYNAME+":"+getMonitorData.response.result[0].Attribute[maxAttribute].Value + getMonitorData.response.result[0].Attribute[maxAttribute].Units});
                     }
                 }
             });
