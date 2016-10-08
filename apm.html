@@ -341,11 +341,12 @@
                             createStatusNode(vnode, vmsData[iNodes].HEALTHSEVERITY);
                         }
 
-                        // 弹性效果（引力、摩擦系数)
+                        /* 弹性效果（引力、摩擦系数)
                         var effect = JTopo.Effect.spring({
                             // grivity: -20 // 引力 (可以为负值)
                             minLength: 200 // 节点之间最短距离
                         });
+                        */
 
 
                         //创建连线
@@ -488,8 +489,8 @@
                                 nodeFlash(node, 60);
                                 break;
                             case 5:
-                                node.alarm = "";
-                                node.alarmColor = '152,251,152';  //绿色
+                                //node.alarm = "";
+                                //node.alarmColor = '152,251,152';  //绿色
                                 break;
                             case 4:
                                 node.alarm = "警告";
@@ -522,7 +523,7 @@
                         node.fontColor = "255,255,204";
                         node.font = "13px Consolas";
                         node.shadow = true;  //增加阴影效果
-                        //node.alpha = 0.99;
+                        node.alpha = 0.99;
                        // node.fillColor = "255,255,255";
                         scene.add(node);
 
