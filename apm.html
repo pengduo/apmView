@@ -111,6 +111,7 @@
                     scene = new JTopo.Scene();
                     //scene.background = './img/bgblackview.jpg';
                     //scene.background = './img/bg.jpg';
+                    //scene.background = './img/bggrid.jpg';
                     stage.add(scene);
                     //scene.clear();
 
@@ -142,7 +143,7 @@
                     var vMGSelect = document.getElementById('mglist');
                     for (var ii = 0; ii < vMgList.length; ii++) {
                         //运用new Option("文本","值")方法添加选项option
-                        vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
+                        vMGSelect.options.add(new Option(vMgList[ii].DISPLAYNAME, vMgList[ii].RESOURCEID));
                     };
                     vMGSelect.options[0].selected;
 
@@ -153,7 +154,7 @@
                     //document.getElementById("mgTileLegend").innerText="ddd";
 
 
-                    $("#mglist").change(function(){
+                    $("#mglist").click(function(){
                         var vCurrentMG1 = document.getElementById('mglist');
                         var selIndex = 0; //序号，取当前选中选项的序号
                         strResourceID = $("#mglist").val();                                 //获取选中记录的value值
@@ -190,7 +191,7 @@
                     //定期刷新状态
                     $(function () {
                         CurrentMGIndex=0;
-                        setInterval(re, 10000);
+                        setInterval(re, refreshInterval);
                     });
 
                     function re() {
@@ -203,16 +204,16 @@
                         if (varConfig.monitorgroups[showMGidx].details.length>0) //如果此业务组没有关联任何监视器，退出
                         {
                             showMGView(showMGName, showMGidx);
-                            var currentSelectedMGidx = findElementIdx(vMgList, "NAME", showMGName);
+                            var currentSelectedMGidx = findElementIdx(vMgList, "DISPLAYNAME", showMGName);
                             document.getElementById("mglist").options[currentSelectedMGidx].selected = true;
                         }
-                        alert(showMGName+'当前业务组索引号'+CurrentMGIndex);
+                        //alert(showMGName+'当前业务组索引号'+CurrentMGIndex);
                         if (isLinkMode==true) {
                             //varConfig.monitorgroups.length
                             if (CurrentMGIndex == MaxMGCount-1) CurrentMGIndex = 0
                             else  CurrentMGIndex = CurrentMGIndex + 1;
                         }
-                        alert('之后业务组索引号'+CurrentMGIndex);
+                        //alert('之后业务组索引号'+CurrentMGIndex);
 
                         return;
                     }
@@ -230,9 +231,14 @@
                         vmsF = varConfig.monitorgroups[mgIdx].details;
                         if (vmsF.length==0) return;  //如果此业务组没有关联任何监视器，退出
                         var curResourceID = varConfig.monitorgroups[mgIdx].resourceid;
-                        vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+                        //如果是显示子组的业务组，获取子组信息，否则获取MONITOR信息。
+                        if (mgName==showSubGroupList)
+                            vmsA = getSubMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+                        else
+                            vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+
                         vms = MergeVMS(vmsF, vmsA);
-                        createView(vms);
+                        createView(vms,mgName);
 
                         //                        alert($('#mgTitleLegend').title);
                        // $('#mgTitleLegend').innerText="业务组["+showMGViewName+"]运行情况";
@@ -288,7 +294,7 @@
                         vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
                         vms = [];
                         vms = MergeVMS(vmsF, vmsA);
-                        createView(vms);
+                        createView(vms,mgName);
 
                         //创建对象列表信息
                         tabledata = []; //确保清除了数组
@@ -327,7 +333,7 @@
                     }
 
 
-                    function createView(inData) {
+                    function createView(inData,mgName) {
                         var vmsData = inData;
                         //创建节点
                         for (var iNodes = 0; iNodes < vmsData.length; iNodes++) {
@@ -353,15 +359,27 @@
                                 //effect.addNode(destinationnode, sourcenode);
                                 //effect.play();
 
-                                var rs = "响应超时";
+                                var rs =[];// "响应超时";
+                                rs.push({"linkText":""});
+                                rs.push({"linkTooltip":""});
 
-                                var endName = vmsData[i].rel[j];
-                                var destinationnodedata = findVmsNodeByText(endName);
-                                if (destinationnodedata.HEALTHSEVERITY != 1) {
-                                    rs = getMOReponseTime(apmHost, apmPort, apiKey, destinationnodedata.RESOURCEID);
+                                if (mgName==showSubGroupList){
+                                    var endName = vmsData[i].rel[j];
+                                    var destinationnodedata = findVmsNodeByText(endName);
+                                    var link1 = linkNode(sourcenode, destinationnode, destinationnodedata.HEALTHSEVERITY, "", "......");
+                                    scene.add(link1);
+
                                 }
-                                var link1 = linkNode(sourcenode, destinationnode,destinationnodedata.HEALTHSEVERITY,rs[0].linkText,rs[1].linkTooltip);
-                                scene.add(link1);
+                                else {
+                                    var endName = vmsData[i].rel[j];
+                                    var destinationnodedata = findVmsNodeByText(endName);
+                                    if (destinationnodedata.HEALTHSEVERITY != 1) {
+                                        rs = getMOReponseTime(apmHost, apmPort, apiKey, destinationnodedata.RESOURCEID);
+                                    }
+                                    var link1 = linkNode(sourcenode, destinationnode, destinationnodedata.HEALTHSEVERITY, rs[0].linkText, rs[1].linkTooltip);
+                                    scene.add(link1);
+
+                                }
 
                             }
                         }
@@ -493,7 +511,12 @@
                     //配置节点信息，增加事件
                     function node(type, name, x, y) {
                         var node = new JTopo.Node(name);
-                        node.setImage('./img/apm/icon_monitors_' + type + '.png', false);
+
+                        if (type=="Sub Group")
+                            node.setImage('./img/apm/subgroup.jpg', false);
+                        else
+                         node.setImage('./img/apm/icon_monitors_' + type + '.png', false);
+
                         node.setLocation(x, y);
                         node.setSize(30, 30);
                         node.fontColor = "255,255,204";
@@ -1045,6 +1068,32 @@
             return vmsAPI;
         }
 
+        /*根据监视器组ID，获取此监视器组的各子组列表，示范如下
+         [{
+         "name": "169.254.165.8",
+         "type": "Port-Test",
+         "x": 229.92133633136152,
+         "y": 551.7411847165355,
+         "rel": []
+         },
+         {....}
+         ]
+         */
+        function getSubMGInfoFromAPM(host, port, key, GroupResourceID) {
+            var vListMGDetailsURL = "http://" + host + ":" + port + "/AppManager/json/ListMGDetails?apikey=" + key + "&groupId=" + GroupResourceID;
+            var vmsAPI = new Array();
+            vmsAPI=[];
+            $.ajaxSettings.async = false;
+            $.getJSON(vListMGDetailsURL, function (data) {
+                var n=0;
+                if (data.response.result[n].hasOwnProperty('SubMonitorGroup')) {
+                            vmsAPI=data.response.result[n].SubMonitorGroup; // vmsAPI.concat(ApmAPIdata_SubMG.response.result[0].Monitors);//目前只支持子组的两层迭代
+                };
+
+            });
+            $.ajaxSettings.async = true;
+            return vmsAPI;
+        }
         /*合并两个对象，形成监视器组拓扑图完整的数据模型，在API的基础上，增加拓扑信息
          返回：一个合并的对象
          */

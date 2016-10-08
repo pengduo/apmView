@@ -87,7 +87,7 @@
             //用业务组填充下拉列表，并关联事件
             var vMGSelect = document.getElementById('mglist');
             for (var ii = 0; ii < vMgList.length; ii++) {
-                vMGSelect.options.add(new Option(vMgList[ii].NAME, vMgList[ii].RESOURCEID));
+                vMGSelect.options.add(new Option(vMgList[ii].DISPLAYNAME, vMgList[ii].RESOURCEID));
             }
             ;
 
@@ -97,7 +97,8 @@
                 var index = vCurrentMG1.selectedIndex; //序号，取当前选中选项的序号
                 strResourceID = vCurrentMG1.options[index].value;
                 strMoniterGroupName = vCurrentMG1.options[index].text;
-                var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+                //var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
+                var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "resourceid", strResourceID);
                 //var mgSelectIdx = findElementIdx(configFileData.monitorgroups, "name", strMoniterGroupName);
                 initMGView(strMoniterGroupName, mgSelectIdx);
 
@@ -150,7 +151,10 @@
                     for (var ii = 0; ii < configFileData.monitorgroups[idx].details.length; ii++) {
                         var node = new JTopo.Node(configFileData.monitorgroups[idx].details[ii].name);
                         node.setLocation(configFileData.monitorgroups[idx].details[ii].x, configFileData.monitorgroups[idx].details[ii].y);
-                        node.setImage('./img/apm/icon_monitors_' + configFileData.monitorgroups[idx].details[ii].type + '.png', false);
+                        if (configFileData.monitorgroups[idx].details[ii].type=='Sub Group')
+                            node.setImage('./img/apm/subgroup.jpg', false);
+                        else
+                            node.setImage('./img/apm/icon_monitors_' + configFileData.monitorgroups[idx].details[ii].type + '.png', false);
                         node.fontColor = "0,22,0";
                         node.shadow = true;  //增加阴影效果
                         scene.add(node);
@@ -185,8 +189,35 @@
                     $.getJSON(vListMGDetailsURL, function (ApmAPIdata) {
                         var n = 0;
                         //for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
-                        //目前API实际上会返回所有业务组的信息，需要判断在哪个数组里
-                        //if (ApmAPIdata.response.result[n].RESOURCEID == strResourceID) {
+                        //判断当前业务组是否需要显示子组，而不是监视器对象，从apm.js中取变量showSubGroupList的值
+
+                        if (ApmAPIdata.response.result[0].DISPLAYNAME == showSubGroupList) {
+                            if (ApmAPIdata.response.result[0].hasOwnProperty('SubMonitorGroup')) {
+                                //遍历业务组的ID,然后迭代得到监视器
+                                for (var i = 0; i < ApmAPIdata.response.result[n].SubMonitorGroup.length; i++) {
+                                            var node = new JTopo.Node(ApmAPIdata.response.result[n].SubMonitorGroup[i].NAME);
+                                            node.setLocation(Math.random() * 800, Math.random() * 600);
+                                            //约定好图片格式及位置，一定是TYPE类型包括在内
+                                            node.setImage('./img/apm/subgroup.jpg', false);
+                                            node.fontColor = "0,22,0";
+                                            node.shadow = true;  //增加阴影效果
+                                            scene.add(node);
+
+                                            //初始化变量
+                                            var v = {
+                                                "name": node.text,
+                                                "type": ApmAPIdata.response.result[n].SubMonitorGroup[i].TYPE,
+                                                "x": node.x,
+                                                "y": node.y,
+                                                "rel": []
+                                            };
+                                            vms.push(v);
+                                            countMonitors++;
+                                        }
+
+                                }
+
+                        } else {
 
                         //存在两种情况，一种有子组，需要迭代下探取监视器，一种是没有子组，直接取监视器
 
@@ -246,8 +277,8 @@
                         }
 
 
-                        // }
-                        // }
+                         }
+
 
                     });
                     $.ajaxSettings.async = true;
