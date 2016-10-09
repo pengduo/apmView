@@ -191,7 +191,8 @@
                         //for (var n = 0; n < ApmAPIdata.response.result.length; n++) {
                         //判断当前业务组是否需要显示子组，而不是监视器对象，从apm.js中取变量showSubGroupList的值
 
-                        if (ApmAPIdata.response.result[0].DISPLAYNAME == showSubGroupList) {
+                        //if (ApmAPIdata.response.result[0].DISPLAYNAME == showSubGroupList) {
+                        if ($.inArray(ApmAPIdata.response.result[0].DISPLAYNAME,showSubGroupList)!=-1) {
                             if (ApmAPIdata.response.result[0].hasOwnProperty('SubMonitorGroup')) {
                                 //遍历业务组的ID,然后迭代得到监视器
                                 for (var i = 0; i < ApmAPIdata.response.result[n].SubMonitorGroup.length; i++) {

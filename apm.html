@@ -232,8 +232,10 @@
                         if (vmsF.length==0) return;  //如果此业务组没有关联任何监视器，退出
                         var curResourceID = varConfig.monitorgroups[mgIdx].resourceid;
                         //如果是显示子组的业务组，获取子组信息，否则获取MONITOR信息。
-                        if (mgName==showSubGroupList)
-                            vmsA = getSubMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
+//                        if (mgName==showSubGroupList)
+                            if ($.inArray(mgName,showSubGroupList)!=-1)
+
+                                vmsA = getSubMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
                         else
                             vmsA = getMGInfoFromAPM(apmHost, apmPort, apiKey, curResourceID);
 
@@ -364,7 +366,8 @@
                                 rs.push({"linkText":""});
                                 rs.push({"linkTooltip":""});
 
-                                if (mgName==showSubGroupList){
+                                //if (mgName==showSubGroupList){
+                                if ($.inArray(mgName,showSubGroupList)!=-1) {
                                     var endName = vmsData[i].rel[j];
                                     var destinationnodedata = findVmsNodeByText(endName);
                                     var link1 = linkNode(sourcenode, destinationnode, destinationnodedata.HEALTHSEVERITY, "", "......");
