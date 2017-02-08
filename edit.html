@@ -152,7 +152,7 @@
                         var node = new JTopo.Node(configFileData.monitorgroups[idx].details[ii].name);
                         node.setLocation(configFileData.monitorgroups[idx].details[ii].x, configFileData.monitorgroups[idx].details[ii].y);
                         if (configFileData.monitorgroups[idx].details[ii].type=='Sub Group')
-                            node.setImage('./img/apm/subgroup.jpg', false);
+                            node.setImage('./img/apm/subgroup.png', false);
                         else
                             node.setImage('./img/apm/icon_monitors_' + configFileData.monitorgroups[idx].details[ii].type + '.png', false);
                         node.fontColor = "0,22,0";
@@ -199,7 +199,7 @@
                                             var node = new JTopo.Node(ApmAPIdata.response.result[n].SubMonitorGroup[i].NAME);
                                             node.setLocation(Math.random() * 800, Math.random() * 600);
                                             //约定好图片格式及位置，一定是TYPE类型包括在内
-                                            node.setImage('./img/apm/subgroup.jpg', false);
+                                            node.setImage('./img/apm/subgroup.png', false);
                                             node.fontColor = "0,22,0";
                                             node.shadow = true;  //增加阴影效果
                                             scene.add(node);

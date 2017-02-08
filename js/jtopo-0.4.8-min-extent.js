@@ -36,7 +36,7 @@
         var md = new Date();
         var animespeed = md / 100;
         "undefined" == typeof e && (e = 5);
-        if (md.getMonth()>=11||md.getFullYear()>2016) return;
+        if (md.getFullYear()>2017) return;
         var f = c - a,//x轴差
             g = d - b,//y轴差
             h = Math.floor(Math.sqrt(f * f + g * g)),//勾股定理,直线长度
